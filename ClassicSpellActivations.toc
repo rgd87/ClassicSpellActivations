@@ -1,0 +1,5 @@
+## Interface: 11302
+## Title: ClassicSpellActivations
+## Notes: Shows you the shiny
+## Author: d87
+ClassicSpellActivations.lua
