@@ -41,12 +41,23 @@ local spellNamesByID = {
     [20660] = "Execute",
     [20658] = "Execute",
     [5308] = "Execute",
+
+    [686] = "ShadowBolt",
+    [695] = "ShadowBolt",
+    [705] = "ShadowBolt",
+    [1088] = "ShadowBolt",
+    [1106] = "ShadowBolt",
+    [7641] = "ShadowBolt",
+    [11659] = "ShadowBolt",
+    [11660] = "ShadowBolt",
+    [11661] = "ShadowBolt",
+    [25307] = "ShadowBolt",
 }
 
 f:RegisterEvent("PLAYER_LOGIN")
 function f:PLAYER_LOGIN()
     
-    if class == "WARRIOR" or class == "ROGUE" or class == "HUNTER" then
+    if class == "WARRIOR" or class == "ROGUE" or class == "HUNTER" or class == "WARLOCK" then
         self:RegisterEvent("SPELLS_CHANGED")
         self:SPELLS_CHANGED()
 
@@ -65,6 +76,17 @@ function f:PLAYER_LOGIN()
     -- self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     
 
+end
+
+local UnitAura = UnitAura
+local function FindAura(unit, spellID, filter)
+    for i=1, 100 do
+        local name, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, nameplateShowPersonal, auraSpellID = UnitAura(unit, i, filter)
+        if not name then return nil end
+        if spellID == auraSpellID then
+            return name, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, nameplateShowPersonal, auraSpellID
+        end
+    end
 end
 
 function f:SPELLS_CHANGED()
@@ -99,12 +121,37 @@ function f:SPELLS_CHANGED()
             self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
             procCombatLog = ns.CheckRiposte
             self:SetScript("OnUpdate", self.timerOnUpdate)
+        else
+            self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+            self:SetScript("OnUpdate", nil)
         end
     elseif class == "HUNTER" then
         if ns.findHighestRank("Counterattack") then
             self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
             procCombatLog = ns.CheckCounterattack
             self:SetScript("OnUpdate", self.timerOnUpdate)
+        else
+            self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+            self:SetScript("OnUpdate", nil)
+        end
+    elseif class == "WARLOCK" then
+        if IsPlayerSpell(18094) or IsPlayerSpell(18095) then
+            self:RegisterUnitEvent("UNIT_AURA", "player")
+            local hadShadowTrance
+            self.UNIT_AURA = function(self, event, unit)
+                local name, _, _, _, duration, expirationTime = FindAura(unit, 17941, "HELPFUL") -- Shadow Trance
+                local haveShadowTrance = name ~= nil
+                if hadShadowTrance ~= haveShadowTrance then
+                    if haveShadowTrance then
+                        f:Activate("ShadowBolt", duration)
+                    else
+                        f:Deactivate("ShadowBolt")
+                    end
+                    hadShadowTrance = haveShadowTrance
+                end
+            end
+        else
+            self:UnregisterEvent("UNIT_AURA")
         end
     end
 end
@@ -152,7 +199,8 @@ local reverseSpellRanks = {
     Revenge = { 25288, 11601, 11600, 7379, 6574, 6572 },
     Riposte = { 14251 },
     Counterattack = { 20910, 20909, 19306 },
-    Execute = { 20662, 20661, 20660, 20658, 5308 }
+    Execute = { 20662, 20661, 20660, 20658, 5308 },
+    ShadowBolt = { 25307, 11661, 11660, 11659, 7641, 1106, 1088, 705, 695, 686 }
 }
 function ns.findHighestRank(spellName)
     for _, spellID in ipairs(reverseSpellRanks[spellName]) do
