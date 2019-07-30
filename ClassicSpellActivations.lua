@@ -16,7 +16,6 @@ local procCombatLog
 local registeredFrames = {}
 local activations = {}
 
-
 local spellNamesByID = {
     [7384] = "Overpower",
     [7887] = "Overpower",
@@ -52,11 +51,16 @@ local spellNamesByID = {
     [11660] = "ShadowBolt",
     [11661] = "ShadowBolt",
     [25307] = "ShadowBolt",
+
+    [1495] = "MongooseBite",
+    [14269] = "MongooseBite",
+    [14270] = "MongooseBite",
+    [14271] = "MongooseBite",
 }
 
 f:RegisterEvent("PLAYER_LOGIN")
 function f:PLAYER_LOGIN()
-    
+
     if class == "WARRIOR" or class == "ROGUE" or class == "HUNTER" or class == "WARLOCK" then
         self:RegisterEvent("SPELLS_CHANGED")
         self:SPELLS_CHANGED()
@@ -74,7 +78,7 @@ function f:PLAYER_LOGIN()
         end)
     end
     -- self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-    
+
 
 end
 
@@ -126,10 +130,17 @@ function f:SPELLS_CHANGED()
             self:SetScript("OnUpdate", nil)
         end
     elseif class == "HUNTER" then
-        if ns.findHighestRank("Counterattack") then
-            self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-            procCombatLog = ns.CheckCounterattack
-            self:SetScript("OnUpdate", self.timerOnUpdate)
+        self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+        self:SetScript("OnUpdate", self.timerOnUpdate)
+        if ns.findHighestRank("Counterattack") and ns.findHighestRank("MongooseBite") then
+            local CheckCounterattack = ns.CheckCounterattack
+            local CheckMongooseBite = ns.CheckMongooseBite
+            procCombatLog = function(...)
+                CheckCounterattack(...)
+                CheckMongooseBite(...)
+            end
+        elseif ns.findHighestRank("MongooseBite") then
+            procCombatLog = ns.CheckMongooseBite
         else
             self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
             self:SetScript("OnUpdate", nil)
@@ -200,7 +211,8 @@ local reverseSpellRanks = {
     Riposte = { 14251 },
     Counterattack = { 20910, 20909, 19306 },
     Execute = { 20662, 20661, 20660, 20658, 5308 },
-    ShadowBolt = { 25307, 11661, 11660, 11659, 7641, 1106, 1088, 705, 695, 686 }
+    ShadowBolt = { 25307, 11661, 11660, 11659, 7641, 1106, 1088, 705, 695, 686 },
+    MongooseBite = { 14271, 14270, 14269, 1495 },
 }
 function ns.findHighestRank(spellName)
     for _, spellID in ipairs(reverseSpellRanks[spellName]) do
@@ -261,7 +273,7 @@ end
 -----------------
 
 function f:UNIT_HEALTH(event, unit)
-    if UnitExists("target") then
+    if UnitExists("target") and not UnitIsFriend("player", "target") then
         local h = UnitHealth("target")
         local hm = UnitHealthMax("target")
         if h > 0 and h/hm <= 0.2 then
@@ -378,6 +390,29 @@ function ns.CheckCounterattack(eventType, isSrcPlayer, isDstPlayer, ...)
         local spellID = select(1, ...)
         if spellNamesByID[spellID] == "Counterattack" then
             f:Deactivate("Counterattack", 5)
+        end
+    end
+end
+
+function ns.CheckMongooseBite(eventType, isSrcPlayer, isDstPlayer, ...)
+    if isDstPlayer then
+        if eventType == "SWING_MISSED" or eventType == "SPELL_MISSED" then
+            local missedType
+            if eventType == "SWING_MISSED" then
+                missedType = select(1, ...)
+            elseif eventType == "SPELL_MISSED" then
+                missedType = select(4, ...)
+            end
+            if missedType == "DODGE" then
+                f:Activate("MongooseBite", 5)
+            end
+        end
+    end
+
+    if isSrcPlayer and eventType == "SPELL_CAST_SUCCESS" then
+        local spellID = select(1, ...)
+        if spellNamesByID[spellID] == "MongooseBite" then
+            f:Deactivate("MongooseBite", 5)
         end
     end
 end
