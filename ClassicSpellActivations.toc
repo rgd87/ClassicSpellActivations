@@ -3,6 +3,4 @@
 ## Notes: Shows you the shiny
 ## Author: d87
 
-## X-WoWI-ID: 25000
-
 ClassicSpellActivations.lua

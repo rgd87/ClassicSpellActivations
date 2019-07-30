@@ -1,0 +1,10 @@
+package-as: ClassicSpellActivations
+
+enable-nolib-creation: no
+
+manual-changelog:
+    filename: CHANGELOG.md
+    markup-type: markdown
+
+ignore:
+    CHANGELOG.md
