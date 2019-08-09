@@ -16,6 +16,15 @@ local procCombatLog
 local registeredFrames = {}
 local activations = {}
 
+local LocalizedOverpower = GetSpellInfo(7384)
+local LocalizedRevenge = GetSpellInfo(6572)
+local LocalizedRiposte = GetSpellInfo(14251)
+local LocalizedCounterattack = GetSpellInfo(19306)
+-- local LocalizedExecute = GetSpellInfo(20662)
+-- local LocalizedShadowBolt = GetSpellInfo(686)
+local LocalizedMongooseBite = GetSpellInfo(1495)
+
+
 local spellNamesByID = {
     [7384] = "Overpower",
     [7887] = "Overpower",
@@ -303,8 +312,8 @@ function ns.CheckOverpower(eventType, isSrcPlayer, isDstPlayer, ...)
         end
 
         if eventType == "SPELL_CAST_SUCCESS" then
-            local spellID = select(1, ...)
-            if spellNamesByID[spellID] == "Overpower" then
+            local spellName = select(2, ...)
+            if spellName == LocalizedOverpower then
                 f:Deactivate("Overpower")
             end
         end
@@ -333,8 +342,8 @@ function ns.CheckRevenge(eventType, isSrcPlayer, isDstPlayer, ...)
     end
 
     if isSrcPlayer and eventType == "SPELL_CAST_SUCCESS" then
-        local spellID = select(1, ...)
-        if spellNamesByID[spellID] == "Revenge" then
+        local spellName = select(2, ...)
+        if spellName == LocalizedRevenge then
             f:Deactivate("Revenge")
         end
     end
@@ -360,8 +369,8 @@ function ns.CheckRiposte(eventType, isSrcPlayer, isDstPlayer, ...)
     end
 
     if isSrcPlayer and eventType == "SPELL_CAST_SUCCESS" then
-        local spellID = select(1, ...)
-        if spellNamesByID[spellID] == "Riposte" then -- Riposte
+        local spellName = select(2, ...)
+        if spellName == LocalizedRiposte then -- Riposte
             f:Deactivate("Riposte")
         end
     end
@@ -387,8 +396,8 @@ function ns.CheckCounterattack(eventType, isSrcPlayer, isDstPlayer, ...)
     end
 
     if isSrcPlayer and eventType == "SPELL_CAST_SUCCESS" then
-        local spellID = select(1, ...)
-        if spellNamesByID[spellID] == "Counterattack" then
+        local spellName = select(2, ...)
+        if spellName == LocalizedCounterattack then
             f:Deactivate("Counterattack", 5)
         end
     end
@@ -410,8 +419,8 @@ function ns.CheckMongooseBite(eventType, isSrcPlayer, isDstPlayer, ...)
     end
 
     if isSrcPlayer and eventType == "SPELL_CAST_SUCCESS" then
-        local spellID = select(1, ...)
-        if spellNamesByID[spellID] == "MongooseBite" then
+        local spellName = select(2, ...)
+        if spellName == LocalizedMongooseBite then
             f:Deactivate("MongooseBite", 5)
         end
     end
