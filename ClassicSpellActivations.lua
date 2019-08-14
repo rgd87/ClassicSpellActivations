@@ -85,6 +85,14 @@ function f:PLAYER_LOGIN()
         hooksecurefunc("ActionButton_UpdateOverlayGlow", function(self)
             ns.UpdateOverlayGlow(self)
         end)
+
+        local LAB = LibStub("LibActionButton-1.0", true) -- Bartener/ElvUI support
+        if LAB then
+            self:RegisterForActivations(LAB.eventFrame)
+            LAB:RegisterCallback("OnButtonUpdate", function(event, self)
+                ns.UpdateOverlayGlow(self)
+            end)
+        end
     end
     -- self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 
