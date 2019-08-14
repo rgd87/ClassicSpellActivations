@@ -23,7 +23,7 @@ local LocalizedCounterattack = GetSpellInfo(19306)
 -- local LocalizedExecute = GetSpellInfo(20662)
 -- local LocalizedShadowBolt = GetSpellInfo(686)
 local LocalizedMongooseBite = GetSpellInfo(1495)
-
+local LBG
 
 local spellNamesByID = {
     [7384] = "Overpower",
@@ -88,9 +88,10 @@ function f:PLAYER_LOGIN()
 
         local LAB = LibStub("LibActionButton-1.0", true) -- Bartener/ElvUI support
         if LAB then
+            LBG = LibStub("LibButtonGlow-1.0", true)
             self:RegisterForActivations(LAB.eventFrame)
             LAB:RegisterCallback("OnButtonUpdate", function(event, self)
-                ns.UpdateOverlayGlow(self)
+                ns.LAB_UpdateOverlayGlow(self)
             end)
         end
     end
@@ -212,6 +213,19 @@ function ns.UpdateOverlayGlow(self)
 		end
 	else
 		ActionButton_HideOverlayGlow(self);
+	end
+end
+
+function ns.LAB_UpdateOverlayGlow(self)
+	local spellId = self:GetSpellId()
+	if spellId and IsSpellOverlayed(spellId) then
+		if LBG then
+            LBG.ShowOverlayGlow(self)
+        end
+	else
+		if LBG then
+            LBG.HideOverlayGlow(self)
+        end
 	end
 end
 
