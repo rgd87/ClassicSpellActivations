@@ -86,11 +86,20 @@ function f:PLAYER_LOGIN()
             ns.UpdateOverlayGlow(self)
         end)
 
-        local LAB = LibStub("LibActionButton-1.0", true) -- Bartener/ElvUI support
+        local LAB = LibStub("LibActionButton-1.0", true) -- Bartener support
         if LAB then
             LBG = LibStub("LibButtonGlow-1.0", true)
             self:RegisterForActivations(LAB.eventFrame)
             LAB:RegisterCallback("OnButtonUpdate", function(event, self)
+                ns.LAB_UpdateOverlayGlow(self)
+            end)
+        end
+
+        local LAB2 = LibStub("LibActionButton-1.0-ElvUI", true) -- ElvUI support
+        if LAB2 then
+            LBG = LibStub("LibButtonGlow-1.0", true)
+            self:RegisterForActivations(LAB2.eventFrame)
+            LAB2:RegisterCallback("OnButtonUpdate", function(event, self)
                 ns.LAB_UpdateOverlayGlow(self)
             end)
         end
