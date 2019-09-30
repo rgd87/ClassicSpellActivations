@@ -127,6 +127,7 @@ local function FindAura(unit, spellID, filter)
     end
 end
 
+local hadShadowTrance
 function f:SPELLS_CHANGED()
     if class == "WARRIOR" then
         self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
@@ -190,7 +191,6 @@ function f:SPELLS_CHANGED()
     elseif class == "WARLOCK" then
         if IsPlayerSpell(18094) or IsPlayerSpell(18095) then
             self:RegisterUnitEvent("UNIT_AURA", "player")
-            local hadShadowTrance
             self.UNIT_AURA = function(self, event, unit)
                 local name, _, _, _, duration, expirationTime = FindAura(unit, 17941, "HELPFUL") -- Shadow Trance
                 local haveShadowTrance = name ~= nil
