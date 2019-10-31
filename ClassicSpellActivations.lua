@@ -203,6 +203,7 @@ function f:SPELLS_CHANGED()
             self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
             self:SetScript("OnUpdate", nil)
         end
+    --[[
     elseif class == "WARLOCK" then
         if IsPlayerSpell(18094) or IsPlayerSpell(18095) then
             self:RegisterUnitEvent("UNIT_AURA", "player")
@@ -221,6 +222,7 @@ function f:SPELLS_CHANGED()
         else
             self:UnregisterEvent("UNIT_AURA")
         end
+        ]]
     end
 end
 
