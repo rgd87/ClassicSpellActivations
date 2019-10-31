@@ -362,7 +362,9 @@ function ns.ExecuteCheck(self, event, unit)
     if UnitExists("target") and not UnitIsFriend("player", "target") then
         local h = UnitHealth("target")
         local hm = UnitHealthMax("target")
-        if h > 0 and h/hm <= 0.2 then
+        local executeID = ns.findHighestRank("Execute")
+
+        if h > 0 and (h/hm < 0.2 or IsUsableSpell(executeID)) then
             f:Activate("Execute", 10)
         else
             f:Deactivate("Execute")
