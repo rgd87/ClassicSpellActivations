@@ -114,6 +114,16 @@ function f:PLAYER_LOGIN()
                 ns.LAB_UpdateOverlayGlow(self)
             end)
         end
+
+        -- if Neuron then
+        --     for i,bar in ipairs(Neuron.BARIndex) do
+        --         for btnID, btn in pairs(bar.buttons) do
+        --             if btn.objType == "ACTIONBUTTON" then
+        --                 self:RegisterForActivations(btn)
+        --             end
+        --         end
+        --     end
+        -- end
     end
     -- self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 
