@@ -37,18 +37,23 @@ local spellNamesByID = {
     [11600] = "Revenge",
     [11601] = "Revenge",
     [25288] = "Revenge",
+    [25269] = "Revenge",
+    [30357] = "Revenge",
 
     [14251] = "Riposte",
 
     [19306] = "Counterattack",
     [20909] = "Counterattack",
     [20910] = "Counterattack",
+    [27067] = "Counterattack",
 
     [20662] = "Execute",
     [20661] = "Execute",
     [20660] = "Execute",
     [20658] = "Execute",
     [5308] = "Execute",
+    [25234] = "Execute",
+    [25236] = "Execute",
 
     [686] = "ShadowBolt",
     [695] = "ShadowBolt",
@@ -60,11 +65,13 @@ local spellNamesByID = {
     [11660] = "ShadowBolt",
     [11661] = "ShadowBolt",
     [25307] = "ShadowBolt",
+    [27209] = "ShadowBolt",
 
     [1495] = "MongooseBite",
     [14269] = "MongooseBite",
     [14270] = "MongooseBite",
     [14271] = "MongooseBite",
+    [36916] = "MongooseBite",
 
     [879] = "Exorcism",
     [5614] = "Exorcism",
@@ -72,10 +79,12 @@ local spellNamesByID = {
     [10312] = "Exorcism",
     [10313] = "Exorcism",
     [10314] = "Exorcism",
+    [27138] = "Exorcism",
 
     [24275] = "HammerOfWrath",
     [24274] = "HammerOfWrath",
     [24239] = "HammerOfWrath",
+    [27180] = "HammerOfWrath",
 }
 
 f:RegisterEvent("PLAYER_LOGIN")
@@ -290,14 +299,14 @@ end
 
 local reverseSpellRanks = {
     Overpower = { 11585, 11584, 7887, 7384 },
-    Revenge = { 25288, 11601, 11600, 7379, 6574, 6572 },
+    Revenge = { 30357, 5269, 25288, 11601, 11600, 7379, 6574, 6572 },
     Riposte = { 14251 },
-    Counterattack = { 20910, 20909, 19306 },
-    Execute = { 20662, 20661, 20660, 20658, 5308 },
-    ShadowBolt = { 25307, 11661, 11660, 11659, 7641, 1106, 1088, 705, 695, 686 },
-    MongooseBite = { 14271, 14270, 14269, 1495 },
-    Exorcism = { 10314, 10313, 10312, 5615, 5614, 879 },
-    HammerOfWrath = { 24239, 24274, 24275 },
+    Counterattack = { 27067, 20910, 20909, 19306 },
+    Execute = { 25236, 25234, 0662, 20661, 20660, 20658, 5308 },
+    ShadowBolt = { 27209, 25307, 11661, 11660, 11659, 7641, 1106, 1088, 705, 695, 686 },
+    MongooseBite = { 36916, 14271, 14270, 14269, 1495 },
+    Exorcism = { 27138, 10314, 10313, 10312, 5615, 5614, 879 },
+    HammerOfWrath = { 27180, 24239, 24274, 24275 },
 }
 function ns.findHighestRank(spellName)
     for _, spellID in ipairs(reverseSpellRanks[spellName]) do
