@@ -18,6 +18,7 @@ local activations = {}
 
 local LocalizedOverpower = GetSpellInfo(7384)
 local LocalizedRevenge = GetSpellInfo(6572)
+local LocalizedRampage = GetSpellInfo(29801)
 local LocalizedRiposte = GetSpellInfo(14251)
 local LocalizedCounterattack = GetSpellInfo(19306)
 -- local LocalizedExecute = GetSpellInfo(20662)
@@ -39,6 +40,10 @@ local spellNamesByID = {
     [25288] = "Revenge",
     [25269] = "Revenge",
     [30357] = "Revenge",
+
+    [29801] = "Rampage",
+    [30030] = "Rampage",
+    [30033] = "Rampage",
 
     [14251] = "Riposte",
 
@@ -155,18 +160,27 @@ function f:SPELLS_CHANGED()
     if class == "WARRIOR" then
         self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
         self:SetScript("OnUpdate", self.timerOnUpdate)
-        if ns.findHighestRank("Overpower") and ns.findHighestRank("Revenge") then
-            local CheckOverpower = ns.CheckOverpower
-            local CheckRevenge = ns.CheckRevenge
-            procCombatLog = function(...)
+
+        local hasOverpower = ns.findHighestRank("Overpower")
+        local hasRevenge = ns.findHighestRank("Revenge")
+        local hasRampage = ns.findHighestRank("Rampage")
+
+        local CheckOverpower = ns.CheckOverpower
+        local CheckRevenge = ns.CheckRevenge
+        local CheckRampage = ns.CheckRampage
+        procCombatLog = function(...)
+            if hasOverpower then
                 CheckOverpower(...)
+            end
+            if hasRevenge then
                 CheckRevenge(...)
             end
-        elseif ns.findHighestRank("Overpower") then
-            procCombatLog = ns.CheckOverpower
-        elseif ns.findHighestRank("Revenge") then
-            procCombatLog = ns.CheckRevenge
-        else
+            if hasRampage then
+                CheckRampage(...)
+            end
+        end
+
+        if not hasOverpower and not hasRevenge and not hasRampage then
             self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
             self:SetScript("OnUpdate", nil)
         end
@@ -302,6 +316,7 @@ end
 local reverseSpellRanks = {
     Overpower = { 11585, 11584, 7887, 7384 },
     Revenge = { 30357, 5269, 25288, 11601, 11600, 7379, 6574, 6572 },
+    Rampage = { 30033, 30030, 29801},
     Riposte = { 14251 },
     Counterattack = { 27067, 20910, 20909, 19306 },
     Execute = { 25236, 25234, 20662, 20661, 20660, 20658, 5308 },
@@ -368,12 +383,12 @@ function f:COMBAT_LOG_EVENT_UNFILTERED(event)
     local timestamp, eventType, hideCaster,
     srcGUID, srcName, srcFlags, srcFlags2,
     dstGUID, dstName, dstFlags, dstFlags2,
-    arg1, arg2, arg3, arg4, arg5 = CombatLogGetCurrentEventInfo()
+    arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 = CombatLogGetCurrentEventInfo()
 
     local isSrcPlayer = bit_band(srcFlags, AFFILIATION_MINE) == AFFILIATION_MINE
     local isDstPlayer = dstGUID == UnitGUID("player")
 
-    procCombatLog(eventType, isSrcPlayer, isDstPlayer, arg1, arg2, arg3, arg4, arg5)
+    procCombatLog(eventType, isSrcPlayer, isDstPlayer, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)
 end
 
 -----------------
@@ -445,6 +460,23 @@ function ns.CheckRevenge(eventType, isSrcPlayer, isDstPlayer, ...)
         local spellName = select(2, ...)
         if spellName == LocalizedRevenge then
             f:Deactivate("Revenge")
+        end
+    end
+end
+
+function ns.CheckRampage(eventType, isSrcPlayer, isDstPlayer, ...)
+    if isSrcPlayer then
+        if eventType == "SWING_DAMAGE" or eventType == "SPELL_DAMAGE" then
+            local isCrit
+            if eventType == "SWING_DAMAGE" then
+                isCrit = select(7, ...)
+            elseif eventType == "SPELL_DAMAGE" then
+                isCrit = select(10, ...)
+            end
+            if isCrit == true then
+                f:Activate("Rampage", 5)
+            end
+
         end
     end
 end
