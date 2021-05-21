@@ -128,6 +128,15 @@ function f:PLAYER_LOGIN()
                 ns.LAB_UpdateOverlayGlow(self)
             end)
         end
+		
+		local dominosPrefix = "DominosActionButton"
+		for i = 1, 72 do
+			local btnName = dominosPrefix..i
+			local btn = _G[btnName]
+			if btn then
+				self:RegisterForActivations(btn)
+			end
+		end
 
         -- if Neuron then
         --     for i,bar in ipairs(Neuron.BARIndex) do
