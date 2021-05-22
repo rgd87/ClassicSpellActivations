@@ -101,4 +101,5 @@ globals = {
     "GetLocale",
     "GetSpellCooldown",
     "UnitExists",
+    "IsAddOnLoaded",
 }

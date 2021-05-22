@@ -129,12 +129,14 @@ function f:PLAYER_LOGIN()
             end)
         end
 
-        local dominosPrefix = "DominosActionButton"
-        for i = 1, 72 do
-            local btnName = dominosPrefix..i
-            local btn = _G[btnName]
-            if btn then
-                self:RegisterForActivations(btn)
+        if IsAddOnLoaded("Dominos") then
+            local dominosPrefix = "DominosActionButton"
+            for i = 1, 72 do
+                local btnName = dominosPrefix..i
+                local btn = _G[btnName]
+                if btn then
+                    self:RegisterForActivations(btn)
+                end
             end
         end
 
