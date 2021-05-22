@@ -3,7 +3,7 @@ local addonName, ns = ...
 local f = CreateFrame("Frame", "ClassicSpellActivations") --, UIParent)
 
 f:SetScript("OnEvent", function(self, event, ...)
-	return self[event](self, event, ...)
+    return self[event](self, event, ...)
 end)
 
 local UnitGUID = UnitGUID
@@ -128,15 +128,15 @@ function f:PLAYER_LOGIN()
                 ns.LAB_UpdateOverlayGlow(self)
             end)
         end
-		
-		local dominosPrefix = "DominosActionButton"
-		for i = 1, 72 do
-			local btnName = dominosPrefix..i
-			local btn = _G[btnName]
-			if btn then
-				self:RegisterForActivations(btn)
-			end
-		end
+
+        local dominosPrefix = "DominosActionButton"
+        for i = 1, 72 do
+            local btnName = dominosPrefix..i
+            local btn = _G[btnName]
+            if btn then
+                self:RegisterForActivations(btn)
+            end
+        end
 
         -- if Neuron then
         --     for i,bar in ipairs(Neuron.BARIndex) do
@@ -286,31 +286,31 @@ local ActionButton_ShowOverlayGlow = _G.ActionButton_ShowOverlayGlow
 local ActionButton_HideOverlayGlow = _G.ActionButton_HideOverlayGlow
 function ns.UpdateOverlayGlow(self)
     local spellType, id, subType  = GetActionInfo(self.action);
-	if ( spellType == "spell" and IsSpellOverlayed(id) ) then
-		ActionButton_ShowOverlayGlow(self);
-	elseif ( spellType == "macro" ) then
-		local spellId = GetMacroSpell(id);
-		if ( spellId and IsSpellOverlayed(spellId) ) then
-			ActionButton_ShowOverlayGlow(self);
-		else
-			ActionButton_HideOverlayGlow(self);
-		end
-	else
-		ActionButton_HideOverlayGlow(self);
-	end
+    if ( spellType == "spell" and IsSpellOverlayed(id) ) then
+        ActionButton_ShowOverlayGlow(self);
+    elseif ( spellType == "macro" ) then
+        local spellId = GetMacroSpell(id);
+        if ( spellId and IsSpellOverlayed(spellId) ) then
+            ActionButton_ShowOverlayGlow(self);
+        else
+            ActionButton_HideOverlayGlow(self);
+        end
+    else
+        ActionButton_HideOverlayGlow(self);
+    end
 end
 
 function ns.LAB_UpdateOverlayGlow(self)
-	local spellId = self:GetSpellId()
-	if spellId and IsSpellOverlayed(spellId) then
-		if LBG then
+    local spellId = self:GetSpellId()
+    if spellId and IsSpellOverlayed(spellId) then
+        if LBG then
             LBG.ShowOverlayGlow(self)
         end
-	else
-		if LBG then
+    else
+        if LBG then
             LBG.HideOverlayGlow(self)
         end
-	end
+    end
 end
 
 function f:FanoutEvent(event, ...)
