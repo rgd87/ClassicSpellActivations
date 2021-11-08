@@ -97,29 +97,29 @@ local spellNamesByID = {
     [24274] = "HammerOfWrath",
     [24239] = "HammerOfWrath",
     [27180] = "HammerOfWrath",
-	
-	[8042] = "EarthShock",
+
+    [8042] = "EarthShock",
     [8044] = "EarthShock",
-	[8045] = "EarthShock",
-	[8046] = "EarthShock",
-	[10412] = "EarthShock",
+    [8045] = "EarthShock",
+    [8046] = "EarthShock",
+    [10412] = "EarthShock",
     [10413] = "EarthShock",
-	[10414] = "EarthShock",
-	[25454] = "EarthShock",
-	
-	[8050] = "FlameShock",
+    [10414] = "EarthShock",
+    [25454] = "EarthShock",
+
+    [8050] = "FlameShock",
     [8052] = "FlameShock",
-	[8053] = "FlameShock",
-	[10447] = "FlameShock",
-	[10448] = "FlameShock",
+    [8053] = "FlameShock",
+    [10447] = "FlameShock",
+    [10448] = "FlameShock",
     [29228] = "FlameShock",
-	[25457] = "FlameShock",
-	
-	[8056] = "FrostShock",
-	[8058] = "FrostShock",
-	[10472] = "FrostShock",
+    [25457] = "FlameShock",
+
+    [8056] = "FrostShock",
+    [8058] = "FrostShock",
+    [10472] = "FrostShock",
     [10473] = "FrostShock",
-	[25464] = "FrostShock",
+    [25464] = "FrostShock",
 }
 
 f:RegisterEvent("PLAYER_LOGIN")
@@ -349,7 +349,7 @@ function f:SPELLS_CHANGED()
     elseif class == "SHAMAN" then
         self:SetScript("OnUpdate", self.timerOnUpdate)
         local hasShamanisticFocusTalent = IsPlayerSpell(43338)
-		if hasShamanisticFocusTalent then
+        if hasShamanisticFocusTalent then
             self:RegisterUnitEvent("UNIT_AURA", "player")
             self:SetScript("OnUpdate", self.timerOnUpdate)
             self.UNIT_AURA = function(self, event, unit)
@@ -359,12 +359,12 @@ function f:SPELLS_CHANGED()
                     if hadFocused ~= haveFocused then
                         if haveFocused then
                             f:Activate("EarthShock", duration, true)
-							f:Activate("FlameShock", duration, true)
-							f:Activate("FrostShock", duration, true)
+                            f:Activate("FlameShock", duration, true)
+                            f:Activate("FrostShock", duration, true)
                         else
                             f:Deactivate("EarthShock")
-							f:Deactivate("FlameShock")
-							f:Deactivate("FrostShock")
+                            f:Deactivate("FlameShock")
+                            f:Deactivate("FrostShock")
                         end
                         hadFocused = haveFocused
                     end
@@ -444,9 +444,9 @@ local reverseSpellRanks = {
     Exorcism = { 27138, 10314, 10313, 10312, 5615, 5614, 879 },
     HammerOfWrath = { 27180, 24239, 24274, 24275 },
     VictoryRush = { 34428 },
-	EarthShock = { 25454, 10414, 10413, 10412, 8046, 8045, 8044, 8042 },
-	FlameShock = { 25457, 29228, 10448, 10447, 8053, 8052, 8050 },
-	FrostShock = { 25464, 10473, 10472, 8058, 8056 },
+    EarthShock = { 25454, 10414, 10413, 10412, 8046, 8045, 8044, 8042 },
+    FlameShock = { 25457, 29228, 10448, 10447, 8053, 8052, 8050 },
+    FrostShock = { 25464, 10473, 10472, 8058, 8056 },
 }
 function ns.findHighestRank(spellName)
     for _, spellID in ipairs(reverseSpellRanks[spellName]) do
