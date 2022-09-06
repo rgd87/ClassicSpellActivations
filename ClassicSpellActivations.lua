@@ -49,6 +49,8 @@ local spellNamesByID = {
     [30033] = "Rampage",
 
     [34428] = "VictoryRush",
+    
+    [30356] = "ShieldSlam",
 
     [14251] = "Riposte",
 
@@ -196,6 +198,9 @@ local function FindAura(unit, spellID, filter)
     end
 end
 
+local hadTasteForBlood
+local hadSuddenDeath
+local hadSwordAndBoard
 local hadShadowTrance
 local hadFocused
 local hadBacklash
@@ -208,6 +213,7 @@ function f:SPELLS_CHANGED()
         local hasRevenge = ns.findHighestRank("Revenge")
         local hasRampage = ns.findHighestRank("Rampage")
         local hasVictoryRush = ns.findHighestRank("VictoryRush")
+        local hasShieldSlam = ns.findHighestRank("ShieldSlam")
 
         local CheckOverpower = ns.CheckOverpower
         local CheckRevenge = ns.CheckRevenge
@@ -229,9 +235,10 @@ function f:SPELLS_CHANGED()
             self:SetScript("OnUpdate", nil)
         end
 
-        if hasVictoryRush then
+        if hasVictoryRush or ns.findHighestRank("Execute") then
             self:RegisterEvent("SPELL_UPDATE_USABLE")
             local wasUsable = IsUsableSpell(34428)
+            local wasUsableExecute = IsUsableSpell("Execute")
             self.SPELL_UPDATE_USABLE = function()
                 local isUsable = IsUsableSpell(34428)
                 if wasUsable ~= isUsable then
@@ -242,18 +249,70 @@ function f:SPELLS_CHANGED()
                     end
                     wasUsable = isUsable
                 end
+                
+                local isUsableExecute = IsUsableSpell("Execute")
+                if wasUsableExecute ~= isUsableExecute then
+                    if isUsableExecute then
+                        f:Activate("Execute", 10, true)
+                    else
+                        f:Deactivate("Execute")
+                    end
+                    wasUsableExecute = isUsableExecute
+                end
             end
         end
-
-        if ns.findHighestRank("Execute") then
-            self:RegisterEvent("PLAYER_TARGET_CHANGED")
-            self:RegisterUnitEvent("UNIT_HEALTH", "target")
-            self.PLAYER_TARGET_CHANGED = ns.ExecuteCheck
-            self.UNIT_HEALTH = ns.ExecuteCheck
+  
+        local hasTasteForBloodTalent = IsPlayerSpell(56636) or IsPlayerSpell(56637) or IsPlayerSpell(56638)
+        local hasSuddenDeathTalent = IsPlayerSpell(29723) or IsPlayerSpell(29725) or IsPlayerSpell(29724)
+        local hasSwordAndBoardTalent = IsPlayerSpell(46951) or IsPlayerSpell(46952) or IsPlayerSpell(46953)
+        if hasTasteForBloodTalent or hasSuddenDeathTalent or hasSwordAndBoardTalent then
+            self:RegisterUnitEvent("UNIT_AURA", "player")
+            self:SetScript("OnUpdate", self.timerOnUpdate)
+            self.UNIT_AURA = function(self, event, unit)
+                if hasTasteForBloodTalent then
+                    local name, _, _, _, duration, expirationTime = FindAura(unit, 60503, "HELPFUL") -- Taste for Blood
+                    local haveTasteForBlood = name ~= nil
+                    if hadTasteForBlood ~= haveTasteForBlood then
+                        if haveTasteForBlood then
+                            f:Activate("Overpower", duration, true)
+                        else
+                            f:Deactivate("Overpower")
+                        end
+                        hadTasteForBlood = haveTasteForBlood
+                    end
+                end
+                
+                if hasSuddenDeathTalent then
+                    local name, _, _, _, duration, expirationTime = FindAura(unit, 52437, "HELPFUL") -- Sudden Death
+                    local haveSuddenDeath = name ~= nil
+                    if hadSuddenDeath ~= haveSuddenDeath then
+                        if haveSuddenDeath then
+                            f:Activate("Execute", duration, true)
+                        else
+                            f:Deactivate("Execute")
+                        end
+                        hadSuddenDeath = haveSuddenDeath
+                    end
+                end
+                
+                if hasSwordAndBoardTalent then
+                    local name, _, _, _, duration, expirationTime = FindAura(unit, 50227, "HELPFUL") -- Sword and Board
+                    local haveSwordAndBoard = name ~= nil
+                    if hadSwordAndBoard ~= haveSwordAndBoard then
+                        if haveSwordAndBoard then
+                            f:Activate("ShieldSlam", duration, true)
+                        else
+                            f:Deactivate("ShieldSlam")
+                        end
+                        hadSwordAndBoard = haveSwordAndBoard
+                    end
+                end
+            end
         else
-            self:UnregisterEvent("PLAYER_TARGET_CHANGED")
-            self:UnregisterEvent("UNIT_HEALTH")
+            self:SetScript("OnUpdate", nil)
+            self:UnregisterEvent("UNIT_AURA")
         end
+        
     elseif class == "ROGUE" then
         if ns.findHighestRank("Riposte") then
             self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
@@ -444,6 +503,7 @@ local reverseSpellRanks = {
     Exorcism = { 27138, 10314, 10313, 10312, 5615, 5614, 879 },
     HammerOfWrath = { 27180, 24239, 24274, 24275 },
     VictoryRush = { 34428 },
+    ShieldSlam = { 30356 }, 
     EarthShock = { 25454, 10414, 10413, 10412, 8046, 8045, 8044, 8042 },
     FlameShock = { 25457, 29228, 10448, 10447, 8053, 8052, 8050 },
     FrostShock = { 25464, 10473, 10472, 8058, 8056 },
