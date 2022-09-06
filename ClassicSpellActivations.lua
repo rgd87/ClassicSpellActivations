@@ -6,6 +6,8 @@ f:SetScript("OnEvent", function(self, event, ...)
     return self[event](self, event, ...)
 end)
 
+local APILevel = math.floor(select(4,GetBuildInfo())/10000)
+
 local UnitGUID = UnitGUID
 local bit_band = bit.band
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
@@ -298,9 +300,9 @@ function f:SPELLS_CHANGED()
 
     elseif class == "HUNTER" then
 
-        local hasMongooseBite = ns.findHighestRank("MongooseBite")
+        local hasMongooseBite = APILevel <= 2 ns.findHighestRank("MongooseBite")
         local hasCounterattack = ns.findHighestRank("Counterattack")
-        local hasKillCommand = ns.findHighestRank("KillCommand")
+        local hasKillCommand = APILevel == 2 and ns.findHighestRank("KillCommand")
 
         self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
         self:SetScript("OnUpdate", self.timerOnUpdate)

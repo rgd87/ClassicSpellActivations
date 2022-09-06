@@ -102,4 +102,5 @@ globals = {
     "GetSpellCooldown",
     "UnitExists",
     "IsAddOnLoaded",
+    "GetBuildInfo",
 }
