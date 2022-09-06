@@ -31,26 +31,17 @@ local LBG
 
 local spellNamesByID = {
     [7384] = "Overpower",
+    -- TBC and Clasic ranks
     [7887] = "Overpower",
     [11584] = "Overpower",
     [11585] = "Overpower",
 
-    [6572] = "Revenge",
-    [6574] = "Revenge",
-    [7379] = "Revenge",
-    [11600] = "Revenge",
-    [11601] = "Revenge",
-    [25288] = "Revenge",
-    [25269] = "Revenge",
-    [30357] = "Revenge",
-
+    -- TBC
     [29801] = "Rampage",
     [30030] = "Rampage",
     [30033] = "Rampage",
 
     [34428] = "VictoryRush",
-    
-    [30356] = "ShieldSlam",
 
     [14251] = "Riposte",
 
@@ -61,68 +52,34 @@ local spellNamesByID = {
 
     [34026] = "KillCommand",
 
-    [20662] = "Execute",
-    [20661] = "Execute",
-    [20660] = "Execute",
-    [20658] = "Execute",
-    [5308] = "Execute",
-    [25234] = "Execute",
-    [25236] = "Execute",
-
-    [686] = "ShadowBolt",
-    [695] = "ShadowBolt",
-    [705] = "ShadowBolt",
-    [1088] = "ShadowBolt",
-    [1106] = "ShadowBolt",
-    [7641] = "ShadowBolt",
-    [11659] = "ShadowBolt",
-    [11660] = "ShadowBolt",
-    [11661] = "ShadowBolt",
-    [25307] = "ShadowBolt",
-    [27209] = "ShadowBolt",
-
     [1495] = "MongooseBite",
     [14269] = "MongooseBite",
     [14270] = "MongooseBite",
     [14271] = "MongooseBite",
     [36916] = "MongooseBite",
-
-    [879] = "Exorcism",
-    [5614] = "Exorcism",
-    [5615] = "Exorcism",
-    [10312] = "Exorcism",
-    [10313] = "Exorcism",
-    [10314] = "Exorcism",
-    [27138] = "Exorcism",
-
-    [24275] = "HammerOfWrath",
-    [24274] = "HammerOfWrath",
-    [24239] = "HammerOfWrath",
-    [27180] = "HammerOfWrath",
-
-    [8042] = "EarthShock",
-    [8044] = "EarthShock",
-    [8045] = "EarthShock",
-    [8046] = "EarthShock",
-    [10412] = "EarthShock",
-    [10413] = "EarthShock",
-    [10414] = "EarthShock",
-    [25454] = "EarthShock",
-
-    [8050] = "FlameShock",
-    [8052] = "FlameShock",
-    [8053] = "FlameShock",
-    [10447] = "FlameShock",
-    [10448] = "FlameShock",
-    [29228] = "FlameShock",
-    [25457] = "FlameShock",
-
-    [8056] = "FrostShock",
-    [8058] = "FrostShock",
-    [10472] = "FrostShock",
-    [10473] = "FrostShock",
-    [25464] = "FrostShock",
 }
+local function AddSpellName(name, ...)
+    local numArgs = select("#",...)
+    for i=1, numArgs do
+        local spellID = select(i, ...)
+        spellNamesByID[spellID] = name
+    end
+end
+
+AddSpellName("FrostShock", 49236, 49235, 25464, 10473, 10472, 8058, 8056)
+AddSpellName("FlameShock", 49233, 49232, 29228, 25457, 10448, 10447, 8053, 8052, 8050)
+AddSpellName("EarthShock", 49231, 49230, 25454, 10414, 10413, 10412, 8046, 8045, 8044, 8042)
+
+AddSpellName("HammerOfWrath", 48806, 48805, 27180, 24274, 24239, 24275)
+AddSpellName("Exorcism", 48801, 48800, 27138, 10314, 10313, 10312, 5615, 5614, 879)
+
+AddSpellName("ShadowBolt", 47809, 47808, 27209, 25307, 11661, 11660, 11659, 7641, 1106, 1088, 705, 695, 686)
+AddSpellName("Incinerate", 47838, 47837, 32231, 29722)
+
+AddSpellName("Execute", 47471, 47470, 25236, 25234, 20662, 20661, 20660, 20658, 5308)
+AddSpellName("Revenge", 57823, 30357, 25288, 25269, 11601, 11600, 7379, 6574, 6572)
+AddSpellName("ShieldSlam", 47488, 47487, 30356, 25258, 23925, 23924, 23923, 23922)
+
 
 f:RegisterEvent("PLAYER_LOGIN")
 function f:PLAYER_LOGIN()
@@ -249,7 +206,7 @@ function f:SPELLS_CHANGED()
                     end
                     wasUsable = isUsable
                 end
-                
+
                 local isUsableExecute = IsUsableSpell("Execute")
                 if wasUsableExecute ~= isUsableExecute then
                     if isUsableExecute then
@@ -261,7 +218,7 @@ function f:SPELLS_CHANGED()
                 end
             end
         end
-  
+
         local hasTasteForBloodTalent = IsPlayerSpell(56636) or IsPlayerSpell(56637) or IsPlayerSpell(56638)
         local hasSuddenDeathTalent = IsPlayerSpell(29723) or IsPlayerSpell(29725) or IsPlayerSpell(29724)
         local hasSwordAndBoardTalent = IsPlayerSpell(46951) or IsPlayerSpell(46952) or IsPlayerSpell(46953)
@@ -281,7 +238,7 @@ function f:SPELLS_CHANGED()
                         hadTasteForBlood = haveTasteForBlood
                     end
                 end
-                
+
                 if hasSuddenDeathTalent then
                     local name, _, _, _, duration, expirationTime = FindAura(unit, 52437, "HELPFUL") -- Sudden Death
                     local haveSuddenDeath = name ~= nil
@@ -294,7 +251,7 @@ function f:SPELLS_CHANGED()
                         hadSuddenDeath = haveSuddenDeath
                     end
                 end
-                
+
                 if hasSwordAndBoardTalent then
                     local name, _, _, _, duration, expirationTime = FindAura(unit, 50227, "HELPFUL") -- Sword and Board
                     local haveSwordAndBoard = name ~= nil
@@ -312,7 +269,7 @@ function f:SPELLS_CHANGED()
             self:SetScript("OnUpdate", nil)
             self:UnregisterEvent("UNIT_AURA")
         end
-        
+
     elseif class == "ROGUE" then
         if ns.findHighestRank("Riposte") then
             self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
@@ -406,6 +363,7 @@ function f:SPELLS_CHANGED()
             self:UnregisterEvent("UNIT_AURA")
         end
     elseif class == "SHAMAN" then
+        if APILevel == 2 then
         self:SetScript("OnUpdate", self.timerOnUpdate)
         local hasShamanisticFocusTalent = IsPlayerSpell(43338)
         if hasShamanisticFocusTalent then
@@ -432,6 +390,7 @@ function f:SPELLS_CHANGED()
         else
             self:SetScript("OnUpdate", nil)
             self:UnregisterEvent("UNIT_AURA")
+        end
         end
     end
 end
@@ -491,22 +450,22 @@ end
 
 local reverseSpellRanks = {
     Overpower = { 11585, 11584, 7887, 7384 },
-    Revenge = { 30357, 25269, 5269, 25288, 11601, 11600, 7379, 6574, 6572 },
+    Revenge = { 57823, 30357, 25288, 25269, 11601, 11600, 7379, 6574, 6572 },
     Rampage = { 30033, 30030, 29801},
     Riposte = { 14251 },
     Counterattack = { 27067, 20910, 20909, 19306 },
     KillCommand = { 34026 },
-    Execute = { 25236, 25234, 20662, 20661, 20660, 20658, 5308 },
-    ShadowBolt = { 27209, 25307, 11661, 11660, 11659, 7641, 1106, 1088, 705, 695, 686 },
-    Incinerate = { 32231, 29722 },
+    Execute = { 47471, 47470, 25236, 25234, 20662, 20661, 20660, 20658, 5308 },
+    ShadowBolt = { 47809, 47808, 27209, 25307, 11661, 11660, 11659, 7641, 1106, 1088, 705, 695, 686 },
+    Incinerate = { 47838, 47837, 32231, 29722 },
     MongooseBite = { 36916, 14271, 14270, 14269, 1495 },
-    Exorcism = { 27138, 10314, 10313, 10312, 5615, 5614, 879 },
-    HammerOfWrath = { 27180, 24239, 24274, 24275 },
+    Exorcism = { 48801, 48800, 27138, 10314, 10313, 10312, 5615, 5614, 879 },
+    HammerOfWrath = { 48806, 48805, 27180, 24274, 24239, 24275 },
     VictoryRush = { 34428 },
-    ShieldSlam = { 30356 }, 
-    EarthShock = { 25454, 10414, 10413, 10412, 8046, 8045, 8044, 8042 },
-    FlameShock = { 25457, 29228, 10448, 10447, 8053, 8052, 8050 },
-    FrostShock = { 25464, 10473, 10472, 8058, 8056 },
+    ShieldSlam = { 47488, 47487, 30356, 25258, 23925, 23924, 23923, 23922 },
+    EarthShock = { 57823, 30357, 25288, 25269, 11601, 11600, 7379, 6574, 6572 },
+    FlameShock = { 49233, 49232, 29228, 25457, 10448, 10447, 8053, 8052, 8050 },
+    FrostShock = { 49231, 49230, 25454, 10414, 10413, 10412, 8046, 8045, 8044, 8042 },
 }
 function ns.findHighestRank(spellName)
     for _, spellID in ipairs(reverseSpellRanks[spellName]) do
