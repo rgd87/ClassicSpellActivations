@@ -68,6 +68,16 @@ local function AddSpellName(name, ...)
     end
 end
 
+-- Wrath
+-- Mage: Missile Barrage (arcane), Hot Streak (instant pyro), Firestarter(instant Flamestrik), Brain Freeze, Fingers of Frost, Deep Freeze?
+-- Warlock:
+    -- Demo:Molten Core, Decimation
+    -- Afflication: Drain Soul execute
+    -- Destruction: Backlash
+-- Priest: Serendipity
+-- Druid: Predatory Swiftness, Eclipses
+-- DK: Frost procs
+
 AddSpellName("FrostShock", 49236, 49235, 25464, 10473, 10472, 8058, 8056)
 AddSpellName("FlameShock", 49233, 49232, 29228, 25457, 10448, 10447, 8053, 8052, 8050)
 AddSpellName("EarthShock", 49231, 49230, 25454, 10414, 10413, 10412, 8046, 8045, 8044, 8042)
