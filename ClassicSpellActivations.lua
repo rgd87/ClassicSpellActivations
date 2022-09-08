@@ -31,6 +31,7 @@ local LocalizedEarthShock = GetSpellInfo(8042)
 local LocalizedFlameShock = GetSpellInfo(8050)
 local LocalizedFrostShock = GetSpellInfo(8056)
 local LBG
+local LCG
 
 local spellNamesByID = {}
 local reverseSpellRanks = {}
@@ -130,10 +131,10 @@ function f:PLAYER_LOGIN()
 
         local LAB2 = LibStub("LibActionButton-1.0-ElvUI", true) -- ElvUI support
         if LAB2 then
-            LBG = LibStub("LibButtonGlow-1.0", true)
+            LCG = LibStub("LibCustomGlow-1.0", true)
             self:RegisterForActivations(LAB2.eventFrame)
             LAB2:RegisterCallback("OnButtonUpdate", function(event, self)
-                ns.LAB_UpdateOverlayGlow(self)
+                ns.LAB_UpdateOverlayGlowLibCustomGlow(self)
             end)
         end
 
@@ -221,6 +222,19 @@ function ns.LAB_UpdateOverlayGlow(self)
     else
         if LBG then
             LBG.HideOverlayGlow(self)
+        end
+    end
+end
+
+function ns.LAB_UpdateOverlayGlowLibCustomGlow(self)
+    local spellId = self:GetSpellId()
+    if spellId and IsSpellOverlayed(spellId) then
+        if LCG then
+            LCG.ButtonGlow_Start(self)
+        end
+    else
+        if LCG then
+            LCG.ButtonGlow_Stop(self)
         end
     end
 end
