@@ -86,6 +86,8 @@ AddSpellName("Fireball", 42833, 42832, 38692, 27070, 25306, 10151, 10150, 10149,
 AddSpellName("Pyroblast", 42891, 42890, 33938, 27132, 18809, 12526, 12525, 12524, 12523, 12522, 12505, 11366)
 AddSpellName("Flamestrike", 42926, 42925, 27086, 10216, 10215, 8423, 8422, 2121, 2120)
 
+AddSpellName("FlashOfLight", 48785, 48784, 27137, 19943, 19942, 19941, 19940, 19939, 19750)
+
 local function OnAuraStateChange(conditionFunc, actions)
     local state = -1
     return function()
@@ -731,11 +733,24 @@ function ns.HOWCheck(self, event, unit)
     end
 end
 
+local CheckArtOfWar = OnAuraStateChange(function() return FindAura("player", 59578, "HELPFUL") end,
+    function(present, duration)
+        if present then
+            f:Activate("FlashOfLight", "ArtOfWar", duration, true)
+            f:Activate("Exorcism", "ArtOfWar", duration, true)
+        else
+            f:Deactivate("FlashOfLight", "ArtOfWar")
+            f:Deactivate("Exorcism", "ArtOfWar")
+        end
+    end
+)
+
 ns.configs.PALADIN = function(self)
+    self:SetScript("OnUpdate", self.timerOnUpdate)
+
     if ns.findHighestRank("Exorcism") then
         self:RegisterEvent("PLAYER_TARGET_CHANGED")
         self.PLAYER_TARGET_CHANGED = ns.PaladinExorcismCheck
-        self:SetScript("OnUpdate", self.timerOnUpdate)
 
         if ns.findHighestRank("HammerOfWrath") then
             self:RegisterUnitEvent("UNIT_HEALTH", "target")
@@ -746,45 +761,59 @@ ns.configs.PALADIN = function(self)
             self.UNIT_HEALTH = ns.HOWCheck
         end
     end
+
+    local hasArtOfWar = IsPlayerSpell(53486) or IsPlayerSpell(53488)
+    if hasArtOfWar then
+        self:RegisterUnitEvent("UNIT_AURA", "player")
+        self:SetScript("OnUpdate", self.timerOnUpdate)
+        self.UNIT_AURA = function(self, event, unit)
+            if hasArtOfWar then
+                CheckArtOfWar()
+            end
+        end
+    else
+        self:UnregisterEvent("UNIT_AURA")
+    end
 end
 
 -----------------
 -- WARLOCK
 -----------------
+local CheckNightfall = OnAuraStateChange(function() return FindAura("player", 17941, "HELPFUL") end,
+    function(present, duration)
+        if present then
+            f:Activate("ShadowBolt", "Nightfall", duration, true)
+        else
+            f:Deactivate("ShadowBolt", "Nightfall")
+        end
+    end
+)
+local CheckBacklash = OnAuraStateChange(function() return FindAura("player", 34936, "HELPFUL") end,
+    function(present, duration)
+        if present then
+            f:Activate("ShadowBolt", "Backlash", duration, true)
+            f:Activate("Incinerate", "Backlash", duration, true)
+        else
+            f:Deactivate("ShadowBolt", "Backlash")
+            f:Deactivate("Incinerate", "Backlash")
+        end
+    end
+)
+
 ns.configs.WARLOCK = function(self)
     self:SetScript("OnUpdate", self.timerOnUpdate)
-    local hasNightfallTalent = IsPlayerSpell(18094) or IsPlayerSpell(18095)
-    local hasBacklashTalent = IsPlayerSpell(34939) or IsPlayerSpell(34938) or IsPlayerSpell(34935)
+    local hasNightfallTalent = IsPlayerSpell(18094) or IsPlayerSpell(18095) -- for all classic game versions
+    local hasBacklashTalent = IsPlayerSpell(34939) or IsPlayerSpell(34938) or IsPlayerSpell(34935) -- starts with BC
 
     if hasNightfallTalent or hasBacklashTalent then
         self:RegisterUnitEvent("UNIT_AURA", "player")
         self:SetScript("OnUpdate", self.timerOnUpdate)
         self.UNIT_AURA = function(self, event, unit)
             if hasNightfallTalent then
-                local name, _, _, _, duration, expirationTime = FindAura(unit, 17941, "HELPFUL") -- Shadow Trance
-                local haveShadowTrance = name ~= nil
-                if hadShadowTrance ~= haveShadowTrance then
-                    if haveShadowTrance then
-                        f:Activate("ShadowBolt", "Nightfall", duration, true)
-                    else
-                        f:Deactivate("ShadowBolt", "Nightfall")
-                    end
-                    hadShadowTrance = haveShadowTrance
-                end
+                CheckNightfall()
             end
             if hasBacklashTalent then
-                local name, _, _, _, duration, expirationTime = FindAura(unit, 34936, "HELPFUL") -- Backlash
-                local haveBacklash = name ~= nil
-                if hadBacklash ~= haveBacklash then
-                    if haveBacklash then
-                        f:Activate("ShadowBolt", "Backlash", duration, true)
-                        f:Activate("Incinerate", "Backlash", duration, true)
-                    else
-                        f:Deactivate("ShadowBolt", "Backlash")
-                        f:Deactivate("Incinerate", "Backlash")
-                    end
-                    hadBacklash = haveBacklash
-                end
+                CheckBacklash()
             end
         end
     else
