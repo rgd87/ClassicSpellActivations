@@ -44,14 +44,6 @@ local function AddSpellName(name, ...)
     reverseSpellRanks[name] = ranks
 end
 -- Wrath
--- Warrior: Return execute to health check
--- Mage: Missile Barrage (arcane), Hot Streak (instant pyro), Firestarter(instant Flamestrik), Brain Freeze, Fingers of Frost, Deep Freeze?
--- Warlock:
-    -- Demo:Molten Core, Decimation
-    -- Afflication: Drain Soul execute
-    -- Destruction: Backlash
-
--- Paladin: Art of War Exorcism
 -- Priest: Serendipity
 -- Druid: Predatory Swiftness, Eclipses
 -- DK: Frost procs
@@ -87,6 +79,12 @@ AddSpellName("Pyroblast", 42891, 42890, 33938, 27132, 18809, 12526, 12525, 12524
 AddSpellName("Flamestrike", 42926, 42925, 27086, 10216, 10215, 8423, 8422, 2121, 2120)
 
 AddSpellName("FlashOfLight", 48785, 48784, 27137, 19943, 19942, 19941, 19940, 19939, 19750)
+AddSpellName("DrainSoul", 47855, 27217, 11675, 8289, 8288, 1120)
+AddSpellName("SoulFire", 47825, 47824, 30545, 27211, 17924, 6353)
+
+AddSpellName("Starfire", 48465, 48464, 26986, 25298, 9876, 9875, 8951, 8950, 8949, 2912)
+AddSpellName("Wrath", 48461, 48459, 26985, 26984, 9912, 8905, 6780, 5180, 5179, 5178, 5177, 5176)
+
 
 local function OnAuraStateChange(conditionFunc, actions)
     local state = -1
@@ -176,12 +174,6 @@ local function FindAura(unit, spellID, filter)
     end
 end
 
-local hadTasteForBlood
-local hadSuddenDeath
-local hadSwordAndBoard
-local hadShadowTrance
-local hadFocused
-local hadBacklash
 function f:SPELLS_CHANGED()
     local config = ns.configs[class]
     if config then
@@ -413,6 +405,34 @@ function ns.CheckRampage(eventType, isSrcPlayer, isDstPlayer, ...)
     end
 end
 
+local CheckTasteForBlood = OnAuraStateChange(function() return FindAura("player", 60503, "HELPFUL") end,
+    function(present, duration)
+        if present then
+            f:Activate("Overpower", "TasteForBlood", duration, true)
+        else
+            f:Deactivate("Overpower", "TasteForBlood")
+        end
+    end
+)
+local CheckSuddenDeath = OnAuraStateChange(function() return FindAura("player", 52437, "HELPFUL") end,
+    function(present, duration)
+        if present then
+            f:Activate("Execute", "SuddenDeath", duration, true)
+        else
+            f:Deactivate("Execute", "SuddenDeath")
+        end
+    end
+)
+local CheckSwordAndBoard = OnAuraStateChange(function() return FindAura("player", 50227, "HELPFUL") end,
+    function(present, duration)
+        if present then
+            f:Activate("ShieldSlam", "Reset", duration, true)
+        else
+            f:Deactivate("ShieldSlam", "Reset")
+        end
+    end
+)
+
 ns.configs.WARRIOR = function(self)
     self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     self:SetScript("OnUpdate", self.timerOnUpdate)
@@ -475,49 +495,18 @@ ns.configs.WARRIOR = function(self)
     local hasSwordAndBoardTalent = IsPlayerSpell(46951) or IsPlayerSpell(46952) or IsPlayerSpell(46953)
     if hasTasteForBloodTalent or hasSuddenDeathTalent or hasSwordAndBoardTalent then
         self:RegisterUnitEvent("UNIT_AURA", "player")
-        self:SetScript("OnUpdate", self.timerOnUpdate)
         self.UNIT_AURA = function(self, event, unit)
             if hasTasteForBloodTalent then
-                local name, _, _, _, duration, expirationTime = FindAura(unit, 60503, "HELPFUL") -- Taste for Blood
-                local haveTasteForBlood = name ~= nil
-                if hadTasteForBlood ~= haveTasteForBlood then
-                    if haveTasteForBlood then
-                        f:Activate("Overpower", "TasteForBlood", duration, true)
-                    else
-                        f:Deactivate("Overpower", "TasteForBlood")
-                    end
-                    hadTasteForBlood = haveTasteForBlood
-                end
+                CheckTasteForBlood()
             end
-
             if hasSuddenDeathTalent then
-                local name, _, _, _, duration, expirationTime = FindAura(unit, 52437, "HELPFUL") -- Sudden Death
-                local haveSuddenDeath = name ~= nil
-                if hadSuddenDeath ~= haveSuddenDeath then
-                    if haveSuddenDeath then
-                        f:Activate("Execute", "SuddenDeath", duration, true)
-                    else
-                        f:Deactivate("Execute", "SuddenDeath")
-                    end
-                    hadSuddenDeath = haveSuddenDeath
-                end
+                CheckSuddenDeath()
             end
-
             if hasSwordAndBoardTalent then
-                local name, _, _, _, duration, expirationTime = FindAura(unit, 50227, "HELPFUL") -- Sword and Board
-                local haveSwordAndBoard = name ~= nil
-                if hadSwordAndBoard ~= haveSwordAndBoard then
-                    if haveSwordAndBoard then
-                        f:Activate("ShieldSlam", "Reset", duration, true)
-                    else
-                        f:Deactivate("ShieldSlam", "Reset")
-                    end
-                    hadSwordAndBoard = haveSwordAndBoard
-                end
+                CheckSwordAndBoard()
             end
         end
     else
-        self:SetScript("OnUpdate", nil)
         self:UnregisterEvent("UNIT_AURA")
     end
 end
@@ -799,13 +788,51 @@ local CheckBacklash = OnAuraStateChange(function() return FindAura("player", 349
         end
     end
 )
+local CheckDecimation = OnAuraStateChange(function() return FindAura("player", 63167, "HELPFUL") end,
+    function(present, duration)
+        if present then
+            f:Activate("SoulFire", "Decimation", duration, true)
+        else
+            f:Deactivate("SoulFire", "Decimation")
+        end
+    end
+)
+
+function ns.DrainSoulExecuteCheck(self, event, unit)
+    if UnitExists("target") and not UnitIsFriend("player", "target") then
+        local h = UnitHealth("target")
+        local hm = UnitHealthMax("target")
+        local executeID = ns.findHighestRank("DrainSoul")
+
+        if h > 0 and (h/hm < 0.25) then
+            f:Activate("DrainSoul", "Health", 10)
+        else
+            f:Deactivate("DrainSoul", "Health")
+        end
+    else
+        f:Deactivate("DrainSoul", "Health")
+    end
+end
 
 ns.configs.WARLOCK = function(self)
     self:SetScript("OnUpdate", self.timerOnUpdate)
+
+
+    if ns.findHighestRank("DrainSoul") then
+        self:RegisterEvent("PLAYER_TARGET_CHANGED")
+        self:RegisterUnitEvent("UNIT_HEALTH", "target")
+        self.PLAYER_TARGET_CHANGED = ns.DrainSoulExecuteCheck
+        self.UNIT_HEALTH = ns.DrainSoulExecuteCheck
+    else
+        self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+        self:UnregisterEvent("UNIT_HEALTH")
+    end
+
     local hasNightfallTalent = IsPlayerSpell(18094) or IsPlayerSpell(18095) -- for all classic game versions
     local hasBacklashTalent = IsPlayerSpell(34939) or IsPlayerSpell(34938) or IsPlayerSpell(34935) -- starts with BC
+    local hasDecimation = IsPlayerSpell(63156) or IsPlayerSpell(63158)
 
-    if hasNightfallTalent or hasBacklashTalent then
+    if hasNightfallTalent or hasBacklashTalent or hasDecimation then
         self:RegisterUnitEvent("UNIT_AURA", "player")
         self:SetScript("OnUpdate", self.timerOnUpdate)
         self.UNIT_AURA = function(self, event, unit)
@@ -814,6 +841,9 @@ ns.configs.WARLOCK = function(self)
             end
             if hasBacklashTalent then
                 CheckBacklash()
+            end
+            if hasDecimation then
+                CheckDecimation()
             end
         end
     else
@@ -828,6 +858,20 @@ end
 -----------------
 if APILevel == 2 then
 
+local CheckShamanisticFocus = OnAuraStateChange(function() return FindAura("player", 43339, "HELPFUL") end,
+    function(present, duration)
+        if present then
+            f:Activate("EarthShock", "ShamFocus", duration, true)
+            f:Activate("FlameShock", "ShamFocus", duration, true)
+            f:Activate("FrostShock", "ShamFocus", duration, true)
+        else
+            f:Deactivate("EarthShock", "ShamFocus")
+            f:Deactivate("FlameShock", "ShamFocus")
+            f:Deactivate("FrostShock", "ShamFocus")
+        end
+    end
+)
+
 ns.configs.SHAMAN = function(self)
     self:SetScript("OnUpdate", self.timerOnUpdate)
     local hasShamanisticFocusTalent = IsPlayerSpell(43338)
@@ -836,20 +880,7 @@ ns.configs.SHAMAN = function(self)
         self:SetScript("OnUpdate", self.timerOnUpdate)
         self.UNIT_AURA = function(self, event, unit)
             if hasShamanisticFocusTalent then
-                local name, _, _, _, duration, expirationTime = FindAura(unit, 43339, "HELPFUL") -- Focused
-                local haveFocused = name ~= nil
-                if hadFocused ~= haveFocused then
-                    if haveFocused then
-                        f:Activate("EarthShock", "ShamFocus", duration, true)
-                        f:Activate("FlameShock", "ShamFocus", duration, true)
-                        f:Activate("FrostShock", "ShamFocus", duration, true)
-                    else
-                        f:Deactivate("EarthShock", "ShamFocus")
-                        f:Deactivate("FlameShock", "ShamFocus")
-                        f:Deactivate("FrostShock", "ShamFocus")
-                    end
-                    hadFocused = haveFocused
-                end
+                CheckShamanisticFocus()
             end
         end
     else
@@ -946,6 +977,51 @@ if APILevel == 3 then
         --     self:SetScript("OnUpdate", nil)
         --     self:UnregisterEvent("UNIT_AURA")
         -- end
+    end
+
+end
+
+
+-----------------
+-- DRUID
+-----------------
+
+if APILevel == 3 then
+    local CheckSolarEclipse = OnAuraStateChange(function() return FindAura("player", 48517, "HELPFUL") end,
+        function(present, duration)
+            if present then
+                f:Activate("Wrath", "SolarEclipse", duration, true)
+            else
+                f:Deactivate("Wrath", "SolarEclipse")
+            end
+        end
+    )
+    local CheckLunarEclipse = OnAuraStateChange(function() return FindAura("player", 48518, "HELPFUL") end,
+        function(present, duration)
+            if present then
+                f:Activate("Starfire", "SolarEclipse", duration, true)
+            else
+                f:Deactivate("Starfire", "SolarEclipse")
+            end
+        end
+    )
+
+    ns.configs.DRUID = function(self)
+        self:SetScript("OnUpdate", self.timerOnUpdate)
+        local hasEclipse = IsPlayerSpell(48516) or IsPlayerSpell(48521) or IsPlayerSpell(48525)
+        if hasEclipse then
+            self:RegisterUnitEvent("UNIT_AURA", "player")
+            self:SetScript("OnUpdate", self.timerOnUpdate)
+            self.UNIT_AURA = function(self, event, unit)
+                if hasEclipse then
+                    CheckSolarEclipse()
+                    CheckLunarEclipse()
+                end
+            end
+        else
+            self:SetScript("OnUpdate", nil)
+            self:UnregisterEvent("UNIT_AURA")
+        end
     end
 
 end
