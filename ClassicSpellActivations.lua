@@ -85,12 +85,13 @@ AddSpellName("SoulFire", 47825, 47824, 30545, 27211, 17924, 6353)
 
 AddSpellName("Starfire", 48465, 48464, 26986, 25298, 9876, 9875, 8951, 8950, 8949, 2912)
 AddSpellName("Wrath", 48461, 48459, 26985, 26984, 9912, 8905, 6780, 5180, 5179, 5178, 5177, 5176)
+AddSpellName("GreaterHeal", 48063, 48062, 25314, 25213, 25210, 10965, 10964, 10963, 2060)
 
 
 local function OnAuraStateChange(conditionFunc, actions)
     local state = -1
     return function()
-        local name, _, _, _, duration, expirationTime = conditionFunc()
+        local name, _, count, _, duration, expirationTime = conditionFunc()
         local newState = name ~= nil
         if newState ~= state then
             actions(newState, duration, expirationTime)
@@ -1030,6 +1031,46 @@ if APILevel == 3 then
                 if hasEclipse then
                     CheckSolarEclipse()
                     CheckLunarEclipse()
+                end
+            end
+        else
+            self:SetScript("OnUpdate", nil)
+            self:UnregisterEvent("UNIT_AURA")
+        end
+    end
+
+end
+
+-----------------
+-- PRIEST
+-----------------
+
+if APILevel == 3 then
+    local CheckSerendipity = OnAuraStateChange(
+        function()
+            local name, _, count, _, duration, expirationTime = FindAura("player", 63734, "HELPFUL")
+            if count == 3 then
+                return name, _, count, _, duration, expirationTime
+            end
+        end,
+        function(present, duration)
+            if present then
+                f:Activate("GreaterHeal", "Serendipity", duration, true)
+            else
+                f:Deactivate("GreaterHeal", "Serendipity")
+            end
+        end
+    )
+
+    ns.configs.PRIEST = function(self)
+        self:SetScript("OnUpdate", self.timerOnUpdate)
+        local hasSerendipityRank3 = IsPlayerSpell(63737)
+        if hasSerendipityRank3 then
+            self:RegisterUnitEvent("UNIT_AURA", "player")
+            self:SetScript("OnUpdate", self.timerOnUpdate)
+            self.UNIT_AURA = function(self, event, unit)
+                if hasSerendipityRank3 then
+                    CheckSerendipity()
                 end
             end
         else
