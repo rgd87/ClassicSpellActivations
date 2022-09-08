@@ -406,7 +406,7 @@ function ns.CheckRampage(eventType, isSrcPlayer, isDstPlayer, ...)
                 isCrit = select(10, ...)
             end
             if isCrit == true then
-                f:Activate("Rampage", 5)
+                f:Activate("Rampage", "Crit", 5)
             end
 
         end
@@ -443,6 +443,16 @@ ns.configs.WARRIOR = function(self)
         self:SetScript("OnUpdate", nil)
     end
 
+    if ns.findHighestRank("Execute") then
+        self:RegisterEvent("PLAYER_TARGET_CHANGED")
+        self:RegisterUnitEvent("UNIT_HEALTH", "target")
+        self.PLAYER_TARGET_CHANGED = ns.ExecuteCheck
+        self.UNIT_HEALTH = ns.ExecuteCheck
+    else
+        self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+        self:UnregisterEvent("UNIT_HEALTH")
+    end
+
     if hasVictoryRush or ns.findHighestRank("Execute") then
         self:RegisterEvent("SPELL_UPDATE_USABLE")
         local wasUsable = IsUsableSpell(34428)
@@ -456,16 +466,6 @@ ns.configs.WARRIOR = function(self)
                     f:Deactivate("VictoryRush", "Usable")
                 end
                 wasUsable = isUsable
-            end
-
-            local isUsableExecute = IsUsableSpell("Execute")
-            if wasUsableExecute ~= isUsableExecute then
-                if isUsableExecute then
-                    f:Activate("Execute", "Usable", 10, true)
-                else
-                    f:Deactivate("Execute", "Usable")
-                end
-                wasUsableExecute = isUsableExecute
             end
         end
     end
