@@ -32,43 +32,17 @@ local LocalizedFlameShock = GetSpellInfo(8050)
 local LocalizedFrostShock = GetSpellInfo(8056)
 local LBG
 
-local spellNamesByID = {
-    [7384] = "Overpower",
-    -- TBC and Clasic ranks
-    [7887] = "Overpower",
-    [11584] = "Overpower",
-    [11585] = "Overpower",
-
-    -- TBC
-    [29801] = "Rampage",
-    [30030] = "Rampage",
-    [30033] = "Rampage",
-
-    [34428] = "VictoryRush",
-
-    [14251] = "Riposte",
-
-    [19306] = "Counterattack",
-    [20909] = "Counterattack",
-    [20910] = "Counterattack",
-    [27067] = "Counterattack",
-
-    [34026] = "KillCommand",
-
-    [1495] = "MongooseBite",
-    [14269] = "MongooseBite",
-    [14270] = "MongooseBite",
-    [14271] = "MongooseBite",
-    [36916] = "MongooseBite",
-}
+local spellNamesByID = {}
+local reverseSpellRanks = {}
 local function AddSpellName(name, ...)
-    local numArgs = select("#",...)
-    for i=1, numArgs do
+    local ranks = { ... }
+    local numArgs = #ranks
+    for i=1, #ranks do
         local spellID = select(i, ...)
         spellNamesByID[spellID] = name
     end
+    reverseSpellRanks[name] = ranks
 end
-
 -- Wrath
 -- Warrior: Return execute to health check
 -- Mage: Missile Barrage (arcane), Hot Streak (instant pyro), Firestarter(instant Flamestrik), Brain Freeze, Fingers of Frost, Deep Freeze?
@@ -81,16 +55,14 @@ end
 -- Priest: Serendipity
 -- Druid: Predatory Swiftness, Eclipses
 -- DK: Frost procs
--- local function MakeChecker(auraSpellID, talentCheckFunc, activator, deactivator)
---     return {
---         spellID = auraSpellID,
---         state = true,
---         isKnown = talentCheckFunc,
---         activate = activator,
---         deactivate = deactivator,
---     }
--- end
--- local
+
+AddSpellName("VictoryRush", 34428 )
+AddSpellName("Overpower", 11585, 11584, 7887, 7384 ) -- 7384 - only Wrath rank
+AddSpellName("Rampage", 30033, 30030, 29801 ) -- TBC only
+AddSpellName("Riposte", 14251 )
+AddSpellName("Counterattack", 27067, 20910, 20909, 19306 )
+AddSpellName("KillCommand", 34026 )
+AddSpellName("MongooseBite", 36916, 14271, 14270, 14269, 1495 )
 
 AddSpellName("FrostShock", 49236, 49235, 25464, 10473, 10472, 8058, 8056)
 AddSpellName("FlameShock", 49233, 49232, 29228, 25457, 10448, 10447, 8053, 8052, 8050)
@@ -106,11 +78,32 @@ AddSpellName("Execute", 47471, 47470, 25236, 25234, 20662, 20661, 20660, 20658, 
 AddSpellName("Revenge", 57823, 30357, 25288, 25269, 11601, 11600, 7379, 6574, 6572)
 AddSpellName("ShieldSlam", 47488, 47487, 30356, 25258, 23925, 23924, 23923, 23922)
 
+AddSpellName("ArcaneMissiles", 42846, 42843, 38704, 38699, 27075, 25345, 10212, 10211, 8417, 8416, 5145, 5144, 5143)
+AddSpellName("FrostBolt", 42842, 42841, 38697, 27072, 27071, 25304, 10181, 10180, 10179, 8408, 8407, 8406, 7322, 837, 205, 116)
+AddSpellName("IceLance", 42914, 42913, 30455)
+AddSpellName("FrostfireBolt", 47610, 44614 )
+AddSpellName("Fireball", 42833, 42832, 38692, 27070, 25306, 10151, 10150, 10149, 10148, 8402, 8401, 8400, 3140, 145, 143, 133)
+AddSpellName("Pyroblast", 42891, 42890, 33938, 27132, 18809, 12526, 12525, 12524, 12523, 12522, 12505, 11366)
+AddSpellName("Flamestrike", 42926, 42925, 27086, 10216, 10215, 8423, 8422, 2121, 2120)
+
+local function OnAuraStateChange(conditionFunc, actions)
+    local state = -1
+    return function()
+        local name, _, _, _, duration, expirationTime = conditionFunc()
+        local newState = name ~= nil
+        if newState ~= state then
+            actions(newState, duration, expirationTime)
+            state = newState
+        end
+    end
+end
+
 
 f:RegisterEvent("PLAYER_LOGIN")
 function f:PLAYER_LOGIN()
 
-    if class == "WARRIOR" or class == "ROGUE" or class == "HUNTER" or class == "WARLOCK" or class == "PALADIN" or class == "SHAMAN" then
+    -- if class == "WARRIOR" or class == "ROGUE" or class == "HUNTER" or class == "WARLOCK" or class == "PALADIN" or class == "SHAMAN" then
+    if true then
         self:RegisterEvent("SPELLS_CHANGED")
         self:SPELLS_CHANGED()
 
@@ -247,25 +240,7 @@ function f:FanoutEvent(event, ...)
     end
 end
 
-local reverseSpellRanks = {
-    Overpower = { 11585, 11584, 7887, 7384 },
-    Revenge = { 57823, 30357, 25288, 25269, 11601, 11600, 7379, 6574, 6572 },
-    Rampage = { 30033, 30030, 29801},
-    Riposte = { 14251 },
-    Counterattack = { 27067, 20910, 20909, 19306 },
-    KillCommand = { 34026 },
-    Execute = { 47471, 47470, 25236, 25234, 20662, 20661, 20660, 20658, 5308 },
-    ShadowBolt = { 47809, 47808, 27209, 25307, 11661, 11660, 11659, 7641, 1106, 1088, 705, 695, 686 },
-    Incinerate = { 47838, 47837, 32231, 29722 },
-    MongooseBite = { 36916, 14271, 14270, 14269, 1495 },
-    Exorcism = { 48801, 48800, 27138, 10314, 10313, 10312, 5615, 5614, 879 },
-    HammerOfWrath = { 48806, 48805, 27180, 24274, 24239, 24275 },
-    VictoryRush = { 34428 },
-    ShieldSlam = { 47488, 47487, 30356, 25258, 23925, 23924, 23923, 23922 },
-    EarthShock = { 57823, 30357, 25288, 25269, 11601, 11600, 7379, 6574, 6572 },
-    FlameShock = { 49233, 49232, 29228, 25457, 10448, 10447, 8053, 8052, 8050 },
-    FrostShock = { 49231, 49230, 25454, 10414, 10413, 10412, 8046, 8045, 8044, 8042 },
-}
+
 function ns.findHighestRank(spellName)
     for _, spellID in ipairs(reverseSpellRanks[spellName]) do
         if IsPlayerSpell(spellID) then return spellID end
@@ -297,6 +272,7 @@ function f:Activate(spellName, actID, duration, keepExpiration)
 end
 function f:Deactivate(spellName, actID)
     local states = activations[spellName]
+    if not states then return end
     local state = states[actID]
     if state and state.active == true then
         states[actID] = nil
@@ -852,5 +828,95 @@ ns.configs.SHAMAN = function(self)
         self:UnregisterEvent("UNIT_AURA")
     end
 end
+
+end
+
+
+-----------------
+-- MAGE
+-----------------
+
+if APILevel == 3 then
+    local CheckFingers = OnAuraStateChange(function() return FindAura("player", 74396, "HELPFUL") end,
+        function(present, duration)
+            if present then
+                f:Activate("IceLance", "Fingers", duration, true)
+            else
+                f:Deactivate("IceLance", "Fingers")
+            end
+        end
+    )
+    local CheckBarrage = OnAuraStateChange(function() return FindAura("player", 44401, "HELPFUL") end,
+        function(present, duration)
+            if present then
+                f:Activate("ArcaneMissiles", "Barrage", duration, true)
+            else
+                f:Deactivate("ArcaneMissiles", "Barrage")
+            end
+        end
+    )
+    local CheckBrainFreeze = OnAuraStateChange(function() return FindAura("player", 57761, "HELPFUL") end,
+        function(present, duration)
+            if present then
+                f:Activate("Fireball", "BrainFreeze", duration, true)
+                f:Activate("FrostfireBolt", "BrainFreeze", duration, true)
+            else
+                f:Deactivate("Fireball", "BrainFreeze")
+                f:Deactivate("FrostfireBolt", "BrainFreeze")
+            end
+        end
+    )
+    local CheckHotStreak = OnAuraStateChange(function() return FindAura("player", 48108, "HELPFUL") end,
+        function(present, duration)
+            if present then
+                f:Activate("Pyroblast", "HotStreak", duration, true)
+            else
+                f:Deactivate("Pyroblast", "HotStreak")
+            end
+        end
+    )
+    local CheckFirestarter = OnAuraStateChange(function() return FindAura("player", 54741, "HELPFUL") end,
+        function(present, duration)
+            if present then
+                f:Activate("Flamestrike", "Firestarter", duration, true)
+            else
+                f:Deactivate("Flamestrike", "Firestarter")
+            end
+        end
+    )
+    ns.configs.MAGE = function(self)
+        self:SetScript("OnUpdate", self.timerOnUpdate)
+        local hasFingersOfFrost = IsPlayerSpell(44543) or IsPlayerSpell(44545)
+        local hasMissileBarrage = IsPlayerSpell(44404) or IsPlayerSpell(54486) or IsPlayerSpell(54488) or IsPlayerSpell(54489) or IsPlayerSpell(54490)
+        local hasBrainFreeze = IsPlayerSpell(44546) or IsPlayerSpell(44548) or IsPlayerSpell(44549)
+        local hasHotStreak = IsPlayerSpell(44445) or IsPlayerSpell(44446) or IsPlayerSpell(44448)
+        local hasFirestarter = IsPlayerSpell(44442) or IsPlayerSpell(44443)
+
+        -- if hasFingersOfFrost then
+
+        self:RegisterUnitEvent("UNIT_AURA", "player")
+        self:SetScript("OnUpdate", self.timerOnUpdate)
+        self.UNIT_AURA = function(self, event, unit)
+            if hasFingersOfFrost then
+                CheckFingers()
+            end
+            if hasMissileBarrage then
+                CheckBarrage()
+            end
+            if hasBrainFreeze then
+                CheckBrainFreeze()
+            end
+            if hasHotStreak then
+                CheckHotStreak()
+            end
+            if hasFirestarter then
+                CheckFirestarter()
+            end
+        end
+        -- else
+        --     self:SetScript("OnUpdate", nil)
+        --     self:UnregisterEvent("UNIT_AURA")
+        -- end
+    end
 
 end
