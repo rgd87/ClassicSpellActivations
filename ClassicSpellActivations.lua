@@ -872,12 +872,12 @@ ns.configs.WARLOCK = function(self)
     local hasBacklashTalent = IsPlayerSpell(34939) or IsPlayerSpell(34938) or IsPlayerSpell(34935) -- starts with BC
     local hasDecimation = IsPlayerSpell(63156) or IsPlayerSpell(63158)
     local hasMoltenCore = IsPlayerSpell(47245) or IsPlayerSpell(47246) or IsPlayerSpell(47247)
-
-    if hasNightfallTalent or hasBacklashTalent or hasDecimation or hasMoltenCore then
+    local hasGlyphOfCorruption = IsPlayerSpell(56218) -- Nightfall proc from glyph of corruption
+    if hasNightfallTalent or hasBacklashTalent or hasDecimation or hasMoltenCore or hasGlyphOfCorruption then
         self:RegisterUnitEvent("UNIT_AURA", "player")
         self:SetScript("OnUpdate", self.timerOnUpdate)
         self.UNIT_AURA = function(self, event, unit)
-            if hasNightfallTalent then
+            if hasNightfallTalent or hasGlyphOfCorruption then
                 CheckNightfall()
             end
             if hasBacklashTalent then
