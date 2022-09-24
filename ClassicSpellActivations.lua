@@ -768,6 +768,8 @@ local CheckArtOfWar = OnAuraStateChange(function() return FindAura("player", 595
 ns.configs.PALADIN = function(self)
     self:SetScript("OnUpdate", self.timerOnUpdate)
 
+    local hasArtOfWar = IsPlayerSpell(53486) or IsPlayerSpell(53488)
+
     if ns.findHighestRank("Exorcism") then
         self:RegisterEvent("PLAYER_TARGET_CHANGED")
         self.PLAYER_TARGET_CHANGED = ns.PaladinExorcismCheck
@@ -775,14 +777,15 @@ ns.configs.PALADIN = function(self)
         if ns.findHighestRank("HammerOfWrath") then
             self:RegisterUnitEvent("UNIT_HEALTH", "target")
             self.PLAYER_TARGET_CHANGED = function(...)
-                ns.PaladinExorcismCheck(...)
+                if not hasArtOfWar then
+                    ns.PaladinExorcismCheck(...)
+                end
                 ns.HOWCheck(...)
             end
             self.UNIT_HEALTH = ns.HOWCheck
         end
     end
 
-    local hasArtOfWar = IsPlayerSpell(53486) or IsPlayerSpell(53488)
     if hasArtOfWar then
         self:RegisterUnitEvent("UNIT_AURA", "player")
         self:SetScript("OnUpdate", self.timerOnUpdate)
