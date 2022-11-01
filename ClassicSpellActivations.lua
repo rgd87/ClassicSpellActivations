@@ -112,6 +112,8 @@ function f:PLAYER_LOGIN()
         self:RegisterEvent("SPELLS_CHANGED")
         self:SPELLS_CHANGED()
 
+        self:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
+
         local bars = {"ActionButton","MultiBarBottomLeftButton","MultiBarBottomRightButton","MultiBarLeftButton","MultiBarRightButton"}
         for _,bar in ipairs(bars) do
             for i = 1,12 do
@@ -282,6 +284,23 @@ function f:Activate(spellName, actID, duration, keepExpiration)
         state.expirationTime = duration and GetTime() + duration
     end
 end
+
+
+function f:UPDATE_BONUS_ACTIONBAR()
+    return f:ReactivateButtons()
+end
+function f:ReactivateButtons()
+    local now = GetTime()
+    for spellName, states in pairs(activations) do
+        for actID, state in pairs(states) do
+            if state.active and state.expirationTime > now then
+                local highestRankSpellID = findHighestRank(spellName)
+                self:FanoutEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW", highestRankSpellID)
+            end
+        end
+    end
+end
+
 function f:Deactivate(spellName, actID)
     local states = activations[spellName]
     if not states then return end
