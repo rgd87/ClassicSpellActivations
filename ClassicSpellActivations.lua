@@ -113,6 +113,13 @@ function f:PLAYER_LOGIN()
         self:SPELLS_CHANGED()
 
         self:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
+        -- In case of button swaps for macros it goes like
+        -- ACTIONBAR_SLOT_CHANGED 77
+        -- ACTIONBAR_SLOT_CHANGED 78
+        -- ACTIONBAR_UPDATE_COOLDOWN -- UPDATE_COOLDOWN always finishing the chain of button updates
+        -- So only when detecting this pattern buttons are reactivated. Because normal ACTIONBAR_UPDATE_COOLDOWN happens all the time
+        self:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
+        self:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
 
         local bars = {"ActionButton","MultiBarBottomLeftButton","MultiBarBottomRightButton","MultiBarLeftButton","MultiBarRightButton"}
         for _,bar in ipairs(bars) do
@@ -285,7 +292,16 @@ function f:Activate(spellName, actID, duration, keepExpiration)
     end
 end
 
-
+local slotJustChanged = false
+function f:ACTIONBAR_SLOT_CHANGED()
+    slotJustChanged = true
+end
+function f:ACTIONBAR_UPDATE_COOLDOWN()
+    if slotJustChanged then
+        return f:ReactivateButtons()
+    end
+    slotJustChanged = false
+end
 function f:UPDATE_BONUS_ACTIONBAR()
     return f:ReactivateButtons()
 end
