@@ -309,7 +309,7 @@ function f:ReactivateButtons()
     local now = GetTime()
     for spellName, states in pairs(activations) do
         for actID, state in pairs(states) do
-            if state.active and state.expirationTime > now then
+            if state.active and (state.expirationTime == nil or state.expirationTime > now) then
                 local highestRankSpellID = findHighestRank(spellName)
                 self:FanoutEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW", highestRankSpellID)
             end
