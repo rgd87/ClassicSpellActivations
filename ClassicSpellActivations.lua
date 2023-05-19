@@ -831,18 +831,19 @@ ns.configs.PALADIN = function(self)
         if ns.findHighestRank("Exorcism") then
             self:RegisterEvent("PLAYER_TARGET_CHANGED")
             self.PLAYER_TARGET_CHANGED = ns.PaladinExorcismCheck
-
-            if ns.findHighestRank("HammerOfWrath") then
-                self:RegisterUnitEvent("UNIT_HEALTH", "target")
-                self.PLAYER_TARGET_CHANGED = function(...)
-                    if not hasArtOfWar then
-                        ns.PaladinExorcismCheck(...)
-                    end
-                    ns.HOWCheck(...)
-                end
-                self.UNIT_HEALTH = ns.HOWCheck
-            end
         end
+    end
+
+    if ns.findHighestRank("HammerOfWrath") then
+        self:RegisterUnitEvent("UNIT_HEALTH", "target")
+        self.PLAYER_TARGET_CHANGED = function(...)
+            if APILevel <= 2 then
+            -- if not hasArtOfWar then
+                ns.PaladinExorcismCheck(...)
+            end
+            ns.HOWCheck(...)
+        end
+        self.UNIT_HEALTH = ns.HOWCheck
     end
 
     if hasArtOfWar or hasInfusionOfLight then
