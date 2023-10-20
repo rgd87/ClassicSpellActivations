@@ -66,6 +66,7 @@ AddSpellName("EarthShock", 49231, 49230, 25454, 10414, 10413, 10412, 8046, 8045,
 
 AddSpellName("HammerOfWrath", 48806, 48805, 27180, 24239, 24274, 24275)
 AddSpellName("Exorcism", 48801, 48800, 27138, 10314, 10313, 10312, 5615, 5614, 879)
+AddSpellName("DivineStorm", 53385)
 
 AddSpellName("ShadowBolt", 47809, 47808, 27209, 25307, 11661, 11660, 11659, 7641, 1106, 1088, 705, 695, 686)
 AddSpellName("Incinerate", 47838, 47837, 32231, 29722)
@@ -819,6 +820,17 @@ local CheckInfusionOfLight = OnAuraStateChange(function() return FindAura("playe
     end
 )
 
+local function CheckDivineStorm(eventType, isSrcPlayer, isDstPlayer, spellID)
+    if isSrcPlayer then
+        if eventType == "SPELL_CAST_SUCCESS" then
+            if spellID == 70769 then -- Divine Storm reset
+                f:Activate("DivineStorm", "Reset", 2)
+            end
+        end
+    end
+end
+
+
 
 
 ns.configs.PALADIN = function(self)
@@ -844,6 +856,13 @@ ns.configs.PALADIN = function(self)
             ns.HOWCheck(...)
         end
         self.UNIT_HEALTH = ns.HOWCheck
+    end
+
+    if APILevel == 3 and IsPlayerSpell(53385) then
+        self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+        procCombatLog = CheckDivineStorm
+    else
+        self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     end
 
     if hasArtOfWar or hasInfusionOfLight then
