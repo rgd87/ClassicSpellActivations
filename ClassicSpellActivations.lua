@@ -822,8 +822,8 @@ local CheckInfusionOfLight = OnAuraStateChange(function() return FindAura("playe
 
 local function CheckDivineStorm(eventType, isSrcPlayer, isDstPlayer, spellID)
     if isSrcPlayer then
-        if eventType == "SPELL_CAST_SUCCESS" then
-            if spellID == 70769 then -- Divine Storm reset
+        if spellID == 70769 then -- Divine Storm reset
+            if eventType == "SPELL_CAST_SUCCESS" or eventType == "SPELL_AURA_APPLIED" then
                 f:Activate("DivineStorm", "Reset", 2)
             end
         end
