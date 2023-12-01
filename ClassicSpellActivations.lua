@@ -50,7 +50,7 @@ end
 -- Druid: Predatory Swiftness, Eclipses
 -- DK: Frost procs
 
-AddSpellName("VictoryRush", 34428 )
+AddSpellName("VictoryRush", 34428 ) -- 402927 = Season of Discovery
 AddSpellName("Overpower", 11585, 11584, 7887, 7384 ) -- 7384 - only Wrath rank
 AddSpellName("Rampage", 30033, 30030, 29801 ) -- TBC only
 AddSpellName("Slam", 1464, 8820, 11604, 11605, 25241, 25242, 47474, 47475)
@@ -265,8 +265,20 @@ function f:FanoutEvent(event, ...)
     end
 end
 
+local runeSpells = {
+    -- [403470] = 402927
+    ["VictoryRush"] = 402927,
+    [402927] = 403470 -- spell ID = engraving ID
+}
+
+
+function ns.knownEngravedSpell(spellID)
+    local engravingAbilityID = runeSpells[spellID]
+    return C_Engraving.IsKnownRuneSpell(engravingAbilityID)
+end
 
 function ns.findHighestRank(spellName)
+    if C_Engraving and runeSpells[spellName] then return runeSpells[spellName] end
     for _, spellID in ipairs(reverseSpellRanks[spellName]) do
         if IsPlayerSpell(spellID) then return spellID end
     end
@@ -509,7 +521,7 @@ ns.configs.WARRIOR = function(self)
     local hasOverpower = ns.findHighestRank("Overpower")
     local hasRevenge = ns.findHighestRank("Revenge")
     local hasRampage = ns.findHighestRank("Rampage")
-    local hasVictoryRush = ns.findHighestRank("VictoryRush")
+    local hasVictoryRush = ns.findHighestRank("VictoryRush") or ns.knownEngravedSpell(402927)
     local hasShieldSlam = ns.findHighestRank("ShieldSlam")
 
     local CheckOverpower = ns.CheckOverpower
@@ -543,11 +555,12 @@ ns.configs.WARRIOR = function(self)
     end
 
     if hasVictoryRush or ns.findHighestRank("Execute") then
+        local VictoryRushSpellID = ns.findHighestRank("VictoryRush")
         self:RegisterEvent("SPELL_UPDATE_USABLE")
-        local wasUsable = IsUsableSpell(34428)
+        local wasUsable = IsUsableSpell(VictoryRushSpellID)
         local wasUsableExecute = IsUsableSpell("Execute")
         self.SPELL_UPDATE_USABLE = function()
-            local isUsable = IsUsableSpell(34428)
+            local isUsable = IsUsableSpell(VictoryRushSpellID)
             if wasUsable ~= isUsable then
                 if isUsable then
                     f:Activate("VictoryRush", "Usable", 20, true)

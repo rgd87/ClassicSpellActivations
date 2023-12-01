@@ -103,4 +103,5 @@ globals = {
     "UnitExists",
     "IsAddOnLoaded",
     "GetBuildInfo",
+    "C_Engraving",
 }
