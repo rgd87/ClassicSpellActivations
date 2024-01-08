@@ -90,6 +90,7 @@ AddSpellName("SoulFire", 47825, 47824, 30545, 27211, 17924, 6353)
 AddSpellName("Starfire", 48465, 48464, 26986, 25298, 9876, 9875, 8951, 8950, 8949, 2912)
 AddSpellName("Wrath", 48461, 48459, 26985, 26984, 9912, 8905, 6780, 5180, 5179, 5178, 5177, 5176)
 AddSpellName("GreaterHeal", 48063, 48062, 25314, 25213, 25210, 10965, 10964, 10963, 2060)
+AddSpellName("HealingTouchSoD", 25297, 9889, 9888, 9758, 8903, 6778, 5189, 5188, 5187, 5186, 5185)
 
 AddSpellName("HowlingBlast", 51411, 51410, 51409, 49184)
 AddSpellName("FrostStrike", 55268, 51419, 51418, 51417, 51416, 49143)
@@ -1128,44 +1129,57 @@ end
 -- DRUID
 -----------------
 
-if APILevel == 3 then
-    local CheckSolarEclipse = OnAuraStateChange(function() return FindAura("player", 48517, "HELPFUL") end,
-        function(present, duration)
-            if present then
-                f:Activate("Wrath", "SolarEclipse", duration, true)
-            else
-                f:Deactivate("Wrath", "SolarEclipse")
-            end
-        end
-    )
-    local CheckLunarEclipse = OnAuraStateChange(function() return FindAura("player", 48518, "HELPFUL") end,
-        function(present, duration)
-            if present then
-                f:Activate("Starfire", "SolarEclipse", duration, true)
-            else
-                f:Deactivate("Starfire", "SolarEclipse")
-            end
-        end
-    )
-
-    ns.configs.DRUID = function(self)
-        self:SetScript("OnUpdate", self.timerOnUpdate)
-        local hasEclipse = IsPlayerSpell(48516) or IsPlayerSpell(48521) or IsPlayerSpell(48525)
-        if hasEclipse then
-            self:RegisterUnitEvent("UNIT_AURA", "player")
-            self:SetScript("OnUpdate", self.timerOnUpdate)
-            self.UNIT_AURA = function(self, event, unit)
-                if hasEclipse then
-                    CheckSolarEclipse()
-                    CheckLunarEclipse()
-                end
-            end
+local CheckSolarEclipse = OnAuraStateChange(function() return FindAura("player", 48517, "HELPFUL") end,
+    function(present, duration)
+        if present then
+            f:Activate("Wrath", "SolarEclipse", duration, true)
         else
-            self:SetScript("OnUpdate", nil)
-            self:UnregisterEvent("UNIT_AURA")
+            f:Deactivate("Wrath", "SolarEclipse")
         end
     end
+)
+local CheckLunarEclipse = OnAuraStateChange(function() return FindAura("player", 48518, "HELPFUL") end,
+    function(present, duration)
+        if present then
+            f:Activate("Starfire", "SolarEclipse", duration, true)
+        else
+            f:Deactivate("Starfire", "SolarEclipse")
+        end
+    end
+)
 
+local CheckFuryOfStormrage = OnAuraStateChange(function() return FindAura("player", 414800, "HELPFUL") end, -- Fury Of Stormrage freecast
+    function(present, duration)
+        if present then
+            f:Activate("HealingTouchSoD", "FuryOfStormrage", duration, true)
+        else
+            f:Deactivate("HealingTouchSoD", "FuryOfStormrage")
+        end
+    end
+)
+
+ns.configs.DRUID = function(self)
+    self:SetScript("OnUpdate", self.timerOnUpdate)
+    local hasEclipse = IsPlayerSpell(48516) or IsPlayerSpell(48521) or IsPlayerSpell(48525)
+    if APILevel == 3 and hasEclipse then
+        self:RegisterUnitEvent("UNIT_AURA", "player")
+        self:SetScript("OnUpdate", self.timerOnUpdate)
+        self.UNIT_AURA = function(self, event, unit)
+            if hasEclipse then
+                CheckSolarEclipse()
+                CheckLunarEclipse()
+            end
+        end
+    elseif APILevel == 1 then
+        self:RegisterUnitEvent("UNIT_AURA", "player")
+        self:SetScript("OnUpdate", self.timerOnUpdate)
+        self.UNIT_AURA = function(self, event, unit)
+            CheckFuryOfStormrage()
+        end
+    else
+        self:SetScript("OnUpdate", nil)
+        self:UnregisterEvent("UNIT_AURA")
+    end
 end
 
 -----------------
