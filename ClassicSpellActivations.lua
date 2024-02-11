@@ -269,7 +269,9 @@ end
 local runeSpells = {
     -- [403470] = 402927
     ["VictoryRush"] = 402927,
-    [402927] = 403470 -- spell ID = engraving ID
+    [402927] = 403470, -- spell ID = engraving ID
+    ["BloodSurgeSoD"] = 413380,
+    [413380] = 416004
 }
 
 
@@ -514,6 +516,15 @@ local CheckBloodsurge = OnAuraStateChange(function() return FindAura("player", 4
         end
     end
 )
+local CheckBloodsurgeSoD = OnAuraStateChange(function() return FindAura("player", 413399, "HELPFUL") end,
+    function(present, duration)
+        if present then
+            f:Activate("Slam", "BloodSurgeSoD", duration, true)
+        else
+            f:Deactivate("Slam", "BloodSurgeSoD")
+        end
+    end
+)
 
 ns.configs.WARRIOR = function(self)
     self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
@@ -577,7 +588,8 @@ ns.configs.WARRIOR = function(self)
     local hasSuddenDeathTalent = IsPlayerSpell(29723) or IsPlayerSpell(29725) or IsPlayerSpell(29724)
     local hasSwordAndBoardTalent = IsPlayerSpell(46951) or IsPlayerSpell(46952) or IsPlayerSpell(46953)
     local hasBloodsurgeTalent = IsPlayerSpell(46913) or IsPlayerSpell(46914) or IsPlayerSpell(46915)
-    if hasTasteForBloodTalent or hasSuddenDeathTalent or hasSwordAndBoardTalent or hasBloodsurgeTalent then
+    local hasBloodsurgeEngraving = ns.findHighestRank("BloodSurgeSoD")
+    if hasTasteForBloodTalent or hasSuddenDeathTalent or hasSwordAndBoardTalent or hasBloodsurgeTalent or hasBloodsurgeEngraving then
         self:RegisterUnitEvent("UNIT_AURA", "player")
         self.UNIT_AURA = function(self, event, unit)
             if hasTasteForBloodTalent then
@@ -591,6 +603,9 @@ ns.configs.WARRIOR = function(self)
             end
             if hasBloodsurgeTalent then
             	CheckBloodsurge()
+            end
+            if hasBloodsurgeEngraving then  -- Season of Discovery
+                CheckBloodsurgeSoD()
             end
         end
     else
