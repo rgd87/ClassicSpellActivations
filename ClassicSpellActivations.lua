@@ -286,7 +286,13 @@ function ns.knownEngravedSpell(spellID)
 end
 
 function ns.findHighestRank(spellName)
-    if C_Engraving and runeSpells[spellName] then return runeSpells[spellName] end
+    if C_Engraving then
+        if runeSpells[spellName] then
+            return runeSpells[spellName]
+        elseif not reverseSpellRanks[spellName] then
+            return
+        end
+    end
     for _, spellID in ipairs(reverseSpellRanks[spellName]) do
         if IsPlayerSpell(spellID) then return spellID end
     end
