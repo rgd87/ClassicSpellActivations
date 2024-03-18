@@ -96,6 +96,8 @@ AddSpellName("HealingTouchSoD", 25297, 9889, 9888, 9758, 8903, 6778, 5189, 5188,
 AddSpellName("HowlingBlast", 51411, 51410, 51409, 49184)
 AddSpellName("FrostStrike", 55268, 51419, 51418, 51417, 51416, 49143)
 
+AddSpellName("KillShot", 61006, 61005, 53351)
+
 AddSpellName("ChainLightning", 408484, 408482, 408481, 408479, 10605, 2860, 930, 421)
 AddSpellName("ChainHeal", 416246, 416245, 416244, 10623, 10622, 1064)
 AddSpellName("LavaBurst", 408490)
@@ -684,6 +686,22 @@ end
 -- HUNTER
 -----------------
 
+function ns.KillShotCheck(self, event, unit)
+    if UnitExists("target") and not UnitIsFriend("player", "target") then
+        local h = UnitHealth("target")
+        local hm = UnitHealthMax("target")
+        local killshotID = ns.findHighestRank("KillShot")
+
+        if h > 0 and (h/hm < 0.2 or IsUsableSpell(killshotID)) then
+            f:Activate("KillShot", "Health", 10)
+        else
+            f:Deactivate("KillShot", "Health")
+        end
+    else
+        f:Deactivate("KillShot", "Health")
+    end
+end
+
 function ns.CheckCounterattack(eventType, isSrcPlayer, isDstPlayer, ...)
     if isDstPlayer then
         if eventType == "SWING_MISSED" or eventType == "SPELL_MISSED" then
@@ -776,6 +794,17 @@ ns.configs.HUNTER = function(self)
         self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
         self:SetScript("OnUpdate", nil)
     end
+
+    if ns.findHighestRank("KillShot") then
+        self:RegisterEvent("PLAYER_TARGET_CHANGED")
+        self:RegisterUnitEvent("UNIT_HEALTH", "target")
+        self.PLAYER_TARGET_CHANGED = ns.KillShotCheck
+        self.UNIT_HEALTH = ns.KillShotCheck
+    else
+        self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+        self:UnregisterEvent("UNIT_HEALTH")
+    end
+
 end
 
 -----------------
