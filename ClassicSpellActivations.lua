@@ -293,6 +293,7 @@ function ns.findHighestRank(spellName)
             return
         end
     end
+    if not reverseSpellRanks[spellName] then return end
     for _, spellID in ipairs(reverseSpellRanks[spellName]) do
         if IsPlayerSpell(spellID) then return spellID end
     end
@@ -599,7 +600,8 @@ ns.configs.WARRIOR = function(self)
     local hasSuddenDeathTalent = IsPlayerSpell(29723) or IsPlayerSpell(29725) or IsPlayerSpell(29724)
     local hasSwordAndBoardTalent = IsPlayerSpell(46951) or IsPlayerSpell(46952) or IsPlayerSpell(46953)
     local hasBloodsurgeTalent = IsPlayerSpell(46913) or IsPlayerSpell(46914) or IsPlayerSpell(46915)
-    local hasBloodsurgeEngraving = ns.findHighestRank("BloodSurgeSoD")
+    -- local hasBloodsurgeEngraving = ns.findHighestRank("BloodSurgeSoD")
+    local hasBloodsurgeEngraving = APILevel == 1
     if hasTasteForBloodTalent or hasSuddenDeathTalent or hasSwordAndBoardTalent or hasBloodsurgeTalent or hasBloodsurgeEngraving then
         self:RegisterUnitEvent("UNIT_AURA", "player")
         self.UNIT_AURA = function(self, event, unit)
