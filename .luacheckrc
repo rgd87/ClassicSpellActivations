@@ -104,4 +104,8 @@ globals = {
     "IsAddOnLoaded",
     "GetBuildInfo",
     "C_Engraving",
+    "ActionButton_UpdateOverlayGlow",
+    "C_AddOns",
+    "C_AddOns",
+    "UnitIsDead"
 }
