@@ -141,9 +141,11 @@ function f:PLAYER_LOGIN()
             end
         end
 
-        hooksecurefunc("ActionButton_UpdateOverlayGlow", function(self)
-            ns.UpdateOverlayGlow(self)
-        end)
+        if ActionButton_UpdateOverlayGlow then
+            hooksecurefunc("ActionButton_UpdateOverlayGlow", function(self)
+                ns.UpdateOverlayGlow(self)
+            end)
+        end
 
         local LAB = LibStub and LibStub("LibActionButton-1.0", true) -- Bartener support
         if LAB then
@@ -163,7 +165,7 @@ function f:PLAYER_LOGIN()
             end)
         end
 
-        if IsAddOnLoaded("Dominos") then
+        if (C_AddOns and C_AddOns.IsAddOnLoaded or IsAddOnLoaded)("Dominos") then
             local dominosPrefix = "DominosActionButton"
             for i = 1, 72 do
                 local btnName = dominosPrefix..i
@@ -214,8 +216,13 @@ end
 local function IsSpellOverlayed(spellID)
     local spellName = spellNamesByID[spellID]
     if not spellName then return false end
-    local state = activations[spellName]
-    if state then return state.active end
+    local states = activations[spellName]
+    if states then
+        for _, state in pairs(states) do
+            if state.active then return true end
+        end
+    end
+    return false
 end
 
 local GetActionInfo = _G.GetActionInfo
@@ -751,7 +758,7 @@ function ns.CheckKillCommand(eventType, isSrcPlayer, isDstPlayer, ...)
 end
 
 ns.configs.HUNTER = function(self)
-    local hasMongooseBite = APILevel <= 2 ns.findHighestRank("MongooseBite")
+    local hasMongooseBite = APILevel <= 2 and ns.findHighestRank("MongooseBite")
     local hasCounterattack = ns.findHighestRank("Counterattack")
     local hasKillCommand = APILevel == 2 and ns.findHighestRank("KillCommand")
 
@@ -782,6 +789,7 @@ end
 -- PALADIN
 -----------------
 
+local exorcismSpellID
 do
     local LocalDemonTypes = { "Demon", "Dämon", "Demonio", "Demonio", "Démon", "Demone", "Demônio", "Демон", "악마", "恶魔", "惡魔" }
     local LocalUndeadTypes = { "Undead", "Untoter", "No-muerto", "No-muerto", "Mort-vivant", "Non Morto", "Renegado", "Нежить", "언데드", "亡灵", "不死族" }
@@ -809,17 +817,16 @@ do
     local exorcismTicker
     local exorcismCooldownState
     local exorcismTickerFunc = function()
-        local startTime, duration, enabled = GetSpellCooldown(8092) -- fistt Rank
+        local startTime, duration, enabled = GetSpellCooldown(exorcismSpellID)
         local newState
         if duration <= 1.5 then
             newState = false
         else
             newState = true
         end
-
         if newState ~= exorcismCooldownState then
             if newState == false then
-                f:Activate("Exorcism", "NPCType", 5)
+                f:Activate("Exorcism", "NPCType")
             else
                 f:Deactivate("Exorcism", "NPCType")
             end
@@ -828,7 +835,9 @@ do
     end
 
     function ns.PaladinExorcismCheck(self, event)
-        if UnitExists("target") and (UnitCreatureType("target") == UndeadType or UnitCreatureType("target") == DemonType) then
+        if not exorcismSpellID then return end
+        local creatureType = UnitCreatureType("target")
+        if UnitExists("target") and not UnitIsDead("target") and (creatureType == UndeadType or creatureType == DemonType) then
             exorcismCooldownState = not exorcismCooldownState
             exorcismTickerFunc()
             periodicCheck = exorcismTickerFunc
@@ -898,9 +907,13 @@ ns.configs.PALADIN = function(self)
     local hasInfusionOfLight = IsPlayerSpell(53569) or IsPlayerSpell(53576)
 
     if APILevel <= 2 then
-        if ns.findHighestRank("Exorcism") then
+        local hasExorcism = ns.findHighestRank("Exorcism")
+        if hasExorcism then
+            exorcismSpellID = hasExorcism
             self:RegisterEvent("PLAYER_TARGET_CHANGED")
+            self:RegisterUnitEvent("UNIT_HEALTH", "target")
             self.PLAYER_TARGET_CHANGED = ns.PaladinExorcismCheck
+            self.UNIT_HEALTH = ns.PaladinExorcismCheck
         end
     end
 
@@ -908,12 +921,16 @@ ns.configs.PALADIN = function(self)
         self:RegisterUnitEvent("UNIT_HEALTH", "target")
         self.PLAYER_TARGET_CHANGED = function(...)
             if APILevel <= 2 then
-            -- if not hasArtOfWar then
                 ns.PaladinExorcismCheck(...)
             end
             ns.HOWCheck(...)
         end
-        self.UNIT_HEALTH = ns.HOWCheck
+        self.UNIT_HEALTH = function(...)
+            if APILevel <= 2 then
+                ns.PaladinExorcismCheck(...)
+            end
+            ns.HOWCheck(...)
+        end
     end
 
     if APILevel == 3 and IsPlayerSpell(53385) then
@@ -937,6 +954,12 @@ ns.configs.PALADIN = function(self)
     else
         self:UnregisterEvent("UNIT_AURA")
     end
+
+    -- Handle current target immediately on login/reload
+    if APILevel <= 2 and exorcismSpellID then
+        ns.PaladinExorcismCheck(self)
+    end
+    ns.HOWCheck(self)
 end
 
 -----------------
