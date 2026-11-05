@@ -107,5 +107,9 @@ globals = {
     "ActionButton_UpdateOverlayGlow",
     "C_AddOns",
     "C_AddOns",
+    "C_Spell",
+    "FlyoutHasSpell",
+    "EssentialCooldownViewer",
+    "UtilityCooldownViewer",
     "UnitIsDead"
 }

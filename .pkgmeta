@@ -8,3 +8,6 @@ manual-changelog:
 
 ignore:
     CHANGELOG.md
+
+externals:
+    Libs/LibCustomGlow: https://github.com/Stanzilla/LibCustomGlow.git
