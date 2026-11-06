@@ -427,7 +427,7 @@ local function ActivateCDMFrame(itemFrame, glowSpellID)
 
     if spellID == glowSpellID then
         -- ActionButtonSpellAlertManager:ShowAlert(itemFrame, skipBirth);
-        LibCustomGlow.ProcGlow_Start(itemFrame)
+        LCG_ProcGlow_Start(itemFrame)
     end
 end
 local function DeactivateCDMFrame(itemFrame, glowSpellID)
@@ -435,7 +435,7 @@ local function DeactivateCDMFrame(itemFrame, glowSpellID)
     local spellID = itemFrame:GetBaseSpellID();
     if spellID == glowSpellID then
         -- ActionButtonSpellAlertManager:HideAlert(itemFrame);
-        LibCustomGlow.ProcGlow_Stop(itemFrame)
+        LCG_ProcGlow_Hide(itemFrame)
     end
 end
 
@@ -458,7 +458,7 @@ function f:Activate(spellName, actID, duration, keepExpiration)
         local highestRankSpellID = findHighestRank(spellName)
         local firstRankSpellID = GetFirstRank(spellName)
         self:FanoutFunc(ActivateButton, highestRankSpellID)
-        f:ForEachCDMItemFrame(ActivateCDMFrame, firstRankSpellID)
+        f:ForEachCDMItemFrame(ActivateCDMFrame, highestRankSpellID)
         -- self:FanoutEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW", highestRankSpellID)
     elseif not keepExpiration then
         state.expirationTime = duration and GetTime() + duration
@@ -506,7 +506,7 @@ function f:Deactivate(spellName, actID)
         local highestRankSpellID = findHighestRank(spellName)
         local firstRankSpellID = GetFirstRank(spellName)
         self:FanoutFunc(DeactivateButton, highestRankSpellID)
-        f:ForEachCDMItemFrame(DeactivateCDMFrame, firstRankSpellID)
+        f:ForEachCDMItemFrame(DeactivateCDMFrame, highestRankSpellID)
     end
 end
 
