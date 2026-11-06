@@ -590,8 +590,8 @@ ns.configs.WARRIOR = function(self)
     -- local BaseOverpowerSpellID = 7384
     -- local BaseVictoryRushSpellID = 402927
 
-    local CheckOverpower = MakeUsableChecker(BaseOverpowerSpellID, "Overpower", 5)
-    local CheckRevenge = MakeUsableChecker(BaseRevengeSpellID, "Revenge", 5)
+    local CheckOverpower = MakeUsableChecker(BaseOverpowerSpellID, "Overpower", 20)
+    local CheckRevenge = MakeUsableChecker(BaseRevengeSpellID, "Revenge", 20)
     local CheckVictoryRush = MakeUsableChecker(BaseVictoryRushSpellID, "VictoryRush", 20)
 
 
