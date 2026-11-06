@@ -148,7 +148,7 @@ function f:ADDON_LOADED(event, loadedAddon)
 
         if ActionButton_UpdateOverlayGlow then
             hooksecurefunc("ActionButton_UpdateOverlayGlow", function(self)
-                ns.UpdateOverlayGlow(self)
+                ns.UpdateOverlayGlowLCG(self)
             end)
         end
 
@@ -349,19 +349,59 @@ end
 local findHighestRank = ns.findHighestRank
 
 
+
+local glowOptions = {
+    key = "CSA",
+    startAnim = false
+}
+local glowFrames = {}
+-- Looks like LCG is buggy and on repeated Starts it overlaps effects,
+-- so i'm making sure myself every frame only glows once
+local function LCG_ProcGlow_Start(self, skipBirth)
+    glowOptions.startAnim = not skipBirth
+    if not glowFrames[self] then
+        LibCustomGlow.ProcGlow_Start(self, glowOptions)
+        -- LibCustomGlow.ProcGlow_Start(self)
+        glowFrames[self] = true
+    end
+end
+local function LCG_ProcGlow_Hide(self)
+    LibCustomGlow.ProcGlow_Stop(self, glowOptions.key)
+    -- LibCustomGlow.ProcGlow_Stop(self)
+    glowFrames[self] = nil
+end
+
+function ns.UpdateOverlayGlowLCG(self)
+    local spellType, id, subType  = GetActionInfo(self.action);
+    if ( spellType == "spell" and IsSpellOverlayed(id) ) then
+        LCG_ProcGlow_Start(self, true);
+    elseif ( spellType == "macro" ) then
+        local spellId = GetMacroSpell(id);
+        if ( spellId and IsSpellOverlayed(spellId) ) then
+            LCG_ProcGlow_Start(self, true);
+        else
+            LCG_ProcGlow_Hide(self);
+        end
+    else
+        LCG_ProcGlow_Hide(self);
+    end
+end
+
+
 local function ActivateButton(self, arg1)
+    -- print("Normal Glow", GetTime())
     local actionType, id, subType = GetActionInfo(self.action);
     if ( actionType == "spell" and id == arg1 ) then
         -- ActionButtonSpellAlertManager:ShowAlert(self);
-        LibCustomGlow.ProcGlow_Start(self)
+        LCG_ProcGlow_Start(self)
     elseif ( actionType == "macro" and subType == "spell" ) then
         if ( id == arg1 ) then
             -- ActionButtonSpellAlertManager:ShowAlert(self);
-            LibCustomGlow.ProcGlow_Start(self)
+            LCG_ProcGlow_Start(self)
         end
     elseif (actionType == "flyout" and FlyoutHasSpell(id, arg1)) then
         -- ActionButtonSpellAlertManager:ShowAlert(self);
-        LibCustomGlow.ProcGlow_Start(self)
+        LCG_ProcGlow_Start(self)
     end
 end
 
@@ -369,15 +409,15 @@ local function DeactivateButton(self, arg1)
     local actionType, id, subType = GetActionInfo(self.action);
     if ( actionType == "spell" and id == arg1 ) then
         -- ActionButtonSpellAlertManager:HideAlert(self);
-        LibCustomGlow.ProcGlow_Stop(self)
+        LCG_ProcGlow_Hide(self)
     elseif ( actionType == "macro" and subType == "spell" ) then
         if (id == arg1 ) then
             -- ActionButtonSpellAlertManager:HideAlert(self);
-            LibCustomGlow.ProcGlow_Stop(self)
+            LCG_ProcGlow_Hide(self)
         end
     elseif (actionType == "flyout" and FlyoutHasSpell(id, arg1)) then
         -- ActionButtonSpellAlertManager:HideAlert(self);
-        LibCustomGlow.ProcGlow_Stop(self)
+        LCG_ProcGlow_Hide(self)
     end
 end
 
@@ -446,7 +486,7 @@ function f:ReactivateButtons()
                 local highestRankSpellID = findHighestRank(spellName)
                 local firstRankSpellID = GetFirstRank(spellName)
                 self:FanoutFunc(ActivateButton, highestRankSpellID)
-                f:ForEachCDMItemFrame(ActivateCDMFrame, firstRankSpellID)
+                -- f:ForEachCDMItemFrame(ActivateCDMFrame, firstRankSpellID)
             end
         end
     end
