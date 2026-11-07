@@ -234,10 +234,8 @@ function f:COOLDOWN_VIEWER_DATA_LOADED(event)
     self:InstallCooldownHooks(UtilityCooldownViewer)
     -- self:InstallCooldownHooks(BuffIconCooldownViewer)
 end
-function f:Init()
 
-end
-
+--[[
 local UnitAura = UnitAura
 local function FindAura(unit, spellID, filter)
     for i=1, 100 do
@@ -248,6 +246,7 @@ local function FindAura(unit, spellID, filter)
         end
     end
 end
+]]
 
 function f:SPELLS_CHANGED()
     local config = ns.configs[class]
@@ -276,6 +275,7 @@ local GetActionInfo = _G.GetActionInfo
 local GetMacroSpell = _G.GetMacroSpell
 local ActionButton_ShowOverlayGlow = _G.ActionButton_ShowOverlayGlow
 local ActionButton_HideOverlayGlow = _G.ActionButton_HideOverlayGlow
+--[[
 function ns.UpdateOverlayGlow(self)
     local spellType, id, subType  = GetActionInfo(self.action);
     if ( spellType == "spell" and IsSpellOverlayed(id) ) then
@@ -317,6 +317,7 @@ function ns.LAB_UpdateOverlayGlowLibCustomGlow(self)
         end
     end
 end
+]]
 
 function f:FanoutEvent(event, ...)
     for frame, _ in pairs(registeredFrames) do
@@ -535,7 +536,7 @@ end
 -----------------
 -- WARRIOR
 -----------------
-
+--[[
 function ns.ExecuteCheck(self, event, unit)
     if UnitExists("target") and not UnitIsFriend("player", "target") then
         local h = UnitHealth("target")
@@ -551,7 +552,7 @@ function ns.ExecuteCheck(self, event, unit)
         f:Deactivate("Execute", "Health")
     end
 end
-
+]]
 
 
 
@@ -586,6 +587,7 @@ ns.configs.WARRIOR = function(self)
     local BaseRevengeSpellID = GetFirstRank("Revenge")
     local BaseOverpowerSpellID = GetFirstRank("Overpower")
     local BaseVictoryRushSpellID = GetFirstRank("VictoryRush")
+    local BaseExecuteSpellID = GetFirstRank("Execute")
     -- local BaseRevengeSpellID = 6546
     -- local BaseOverpowerSpellID = 7384
     -- local BaseVictoryRushSpellID = 402927
@@ -593,60 +595,16 @@ ns.configs.WARRIOR = function(self)
     local CheckOverpower = MakeUsableChecker(BaseOverpowerSpellID, "Overpower", 20)
     local CheckRevenge = MakeUsableChecker(BaseRevengeSpellID, "Revenge", 20)
     local CheckVictoryRush = MakeUsableChecker(BaseVictoryRushSpellID, "VictoryRush", 20)
+    local CheckExecute = MakeUsableChecker(BaseExecuteSpellID, "Execute")
 
 
-    -- if ns.findHighestRank("Execute") then
-    --     self:RegisterEvent("PLAYER_TARGET_CHANGED")
-    --     self:RegisterUnitEvent("UNIT_HEALTH", "target")
-    --     self.PLAYER_TARGET_CHANGED = ns.ExecuteCheck
-    --     self.UNIT_HEALTH = ns.ExecuteCheck
-    -- else
-    --     self:UnregisterEvent("PLAYER_TARGET_CHANGED")
-    --     self:UnregisterEvent("UNIT_HEALTH")
-    -- end
-    -- print(ns.findHighestRank("VictoryRush"))
-
-    self:RegisterEvent("SPELL_UPDATE_USABLE")
     self.SPELL_UPDATE_USABLE = function()
         CheckOverpower()
         CheckRevenge()
         CheckVictoryRush()
+        CheckExecute()
     end
 
-    --[[
-    local hasTasteForBloodTalent = IsPlayerSpell(56636) or IsPlayerSpell(56637) or IsPlayerSpell(56638)
-    local hasSuddenDeathTalent = IsPlayerSpell(29723) or IsPlayerSpell(29725) or IsPlayerSpell(29724)
-    local hasSwordAndBoardTalent = IsPlayerSpell(46951) or IsPlayerSpell(46952) or IsPlayerSpell(46953)
-    local hasBloodsurgeTalent = IsPlayerSpell(46913) or IsPlayerSpell(46914) or IsPlayerSpell(46915)
-    -- local hasBloodsurgeEngraving = ns.findHighestRank("BloodSurgeSoD")
-    local hasBloodsurgeEngraving = APILevel == 1
-    local hasTasteForBloodRune = APILevel == 1
-    if hasTasteForBloodTalent or hasSuddenDeathTalent or hasSwordAndBoardTalent or hasBloodsurgeTalent or hasBloodsurgeEngraving then
-        self:RegisterUnitEvent("UNIT_AURA", "player")
-        self.UNIT_AURA = function(self, event, unit)
-            if hasTasteForBloodTalent then
-                CheckTasteForBlood()
-            end
-            if hasSuddenDeathTalent then
-                CheckSuddenDeath()
-            end
-            if hasSwordAndBoardTalent then
-                CheckSwordAndBoard()
-            end
-            if hasBloodsurgeTalent then
-            	CheckBloodsurge()
-            end
-            if hasBloodsurgeEngraving then  -- Season of Discovery
-                CheckBloodsurgeSoD()
-            end
-            if hasTasteForBloodRune then -- Season of Discovery
-                CheckTasteForBloodSoD()
-            end
-        end
-    else
-        self:UnregisterEvent("UNIT_AURA")
-    end
-    ]]
 end
 
 -----------------
@@ -655,11 +613,12 @@ end
 
 
 ns.configs.ROGUE = function(self)
-    local BaseRiposteSpellID = GetFirstRank("Riposte")
-    local CheckRiposte = MakeUsableChecker(BaseRiposteSpellID, "Riposte", 5)
-
-
     self:RegisterEvent("SPELL_UPDATE_USABLE")
+    self:SetScript("OnUpdate", self.timerOnUpdate)
+
+    local BaseRiposteSpellID = GetFirstRank("Riposte")
+    local CheckRiposte = MakeUsableChecker(BaseRiposteSpellID, "Riposte", 20)
+
     self.SPELL_UPDATE_USABLE = function()
         CheckRiposte()
     end
@@ -672,18 +631,56 @@ end
 -----------------
 
 ns.configs.HUNTER = function(self)
-    local BaseCounterattackSpellID = GetFirstRank("Counterattack")
-    local CheckCounterattack = MakeUsableChecker(BaseCounterattackSpellID, "Counterattack", 5)
-    local BaseMongooseBiteSpellID = GetFirstRank("MongooseBite")
-    local CheckMongooseBite = MakeUsableChecker(BaseMongooseBiteSpellID, "MongooseBite", 5)
-
-
     self:RegisterEvent("SPELL_UPDATE_USABLE")
+    self:SetScript("OnUpdate", self.timerOnUpdate)
+
+    local BaseCounterattackSpellID = GetFirstRank("Counterattack")
+    local CheckCounterattack = MakeUsableChecker(BaseCounterattackSpellID, "Counterattack", 20)
+    local BaseMongooseBiteSpellID = GetFirstRank("MongooseBite")
+    local CheckMongooseBite = MakeUsableChecker(BaseMongooseBiteSpellID, "MongooseBite", 20)
+
     self.SPELL_UPDATE_USABLE = function()
         CheckCounterattack()
         CheckMongooseBite()
     end
 end
+
+
+
+-----------------
+-- PALADIN
+-----------------
+
+ns.configs.PALADIN = function(self)
+    self:RegisterEvent("SPELL_UPDATE_USABLE")
+    self:SetScript("OnUpdate", self.timerOnUpdate)
+
+    local BaseHammerOfWrathSpellID = GetFirstRank("HammerOfWrath")
+    local CheckHammerOfWrath = MakeUsableChecker(BaseHammerOfWrathSpellID, "HammerOfWrath")
+
+
+    self.SPELL_UPDATE_USABLE = function()
+        CheckHammerOfWrath()
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 --[[
 function ns.CheckCounterattack(eventType, isSrcPlayer, isDstPlayer, ...)
     if isDstPlayer then
