@@ -462,6 +462,7 @@ function f:Activate(spellName, actID, duration, keepExpiration)
         f:ForEachCDMItemFrame(ActivateCDMFrame, highestRankSpellID)
         -- self:FanoutEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW", highestRankSpellID)
     elseif not keepExpiration then
+        -- Refreshing expiration when keepExpiration is not set
         state.expirationTime = duration and GetTime() + duration
     end
 end
@@ -505,7 +506,6 @@ function f:Deactivate(spellName, actID)
 
     if not next(states) then
         local highestRankSpellID = findHighestRank(spellName)
-        local firstRankSpellID = GetFirstRank(spellName)
         self:FanoutFunc(DeactivateButton, highestRankSpellID)
         f:ForEachCDMItemFrame(DeactivateCDMFrame, highestRankSpellID)
     end
@@ -597,6 +597,19 @@ ns.configs.WARRIOR = function(self)
     local CheckVictoryRush = MakeUsableChecker(BaseVictoryRushSpellID, "VictoryRush", 20)
     local CheckExecute = MakeUsableChecker(BaseExecuteSpellID, "Execute")
 
+
+    self:RegisterEvent("UNIT_COMBAT")
+    self:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
+    self.UNIT_COMBAT = function(self, event, unit, subevent)
+        if unit == "target" and subevent == "DODGE" then
+            f:Activate("Overpower", "Dodge", 5)
+        end
+    end
+    self.UNIT_SPELLCAST_SUCCEEDED = function(self, event, unit, castGUID, spellID, castBarID)
+        if spellNamesByID[spellID] == "Overpower" then
+            f:Deactivate("Overpower", "Dodge", 5)
+        end
+    end
 
     self.SPELL_UPDATE_USABLE = function()
         CheckOverpower()
