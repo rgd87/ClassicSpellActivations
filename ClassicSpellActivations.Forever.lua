@@ -36,6 +36,7 @@ local LocalizedFrostShock = GetSpellName(8056)
 local LBG
 local LCG
 local LibCustomGlow = LibStub("LibCustomGlow-1.0")
+local db
 
 local spellNamesByID = {}
 local reverseSpellRanks = {}
@@ -150,6 +151,31 @@ function f:ADDON_LOADED(event, loadedAddon)
             hooksecurefunc("ActionButton_UpdateOverlayGlow", function(self)
                 ns.UpdateOverlayGlowLCG(self)
             end)
+        end
+
+
+        -- SavedVariables setup with defaults
+        local defaults = {
+            overpowerOnDodge = false
+        }
+
+        ClassicSpellActivationsDB = ClassicSpellActivationsDB or {}
+        db = ClassicSpellActivationsDB
+        for k,v in pairs(defaults) do
+            if db[k] == nil then db[k] = v end
+        end
+        self:RegisterEvent("PLAYER_LOGOUT")
+        self.PLAYER_LOGOUT = function(self)
+            for k, v in pairs(defaults) do
+                if db[k] == v then db[k] = nil end
+            end
+        end
+        -------
+
+        local category = f:CreateSettings(addonName, db)
+        SLASH_CLASSICSPELLACTIVATIONS1 = "/csa"
+        SlashCmdList["CLASSICSPELLACTIVATIONS"] = function()
+            Settings.OpenToCategory(category:GetID())
         end
 
         --[[
@@ -601,13 +627,17 @@ ns.configs.WARRIOR = function(self)
     self:RegisterEvent("UNIT_COMBAT")
     self:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
     self.UNIT_COMBAT = function(self, event, unit, subevent)
-        if unit == "target" and subevent == "DODGE" then
-            f:Activate("Overpower", "Dodge", 5)
+        if db.overpowerOnDodge then
+            if unit == "target" and subevent == "DODGE" then
+                f:Activate("Overpower", "Dodge", 5)
+            end
         end
     end
     self.UNIT_SPELLCAST_SUCCEEDED = function(self, event, unit, castGUID, spellID, castBarID)
-        if spellNamesByID[spellID] == "Overpower" then
-            f:Deactivate("Overpower", "Dodge", 5)
+        if db.overpowerOnDodge then
+            if spellNamesByID[spellID] == "Overpower" then
+                f:Deactivate("Overpower", "Dodge", 5)
+            end
         end
     end
 
@@ -688,8 +718,42 @@ end
 
 
 
+function f:CreateSettings(addonName, dbTable)
+    -- 1. Create a vertical layout category in the AddOns tab
+    local category, layout = Settings.RegisterVerticalLayoutCategory(addonName)
 
+    -- 2. Define the setting details
+    local variable = "overpowerOnDodge" -- This is like a setting id?
+    local name = "Overpower in all stances"
+    local tooltip = "Highlights Overpower in all stances on target's dodge even if it's not technically usable yet outside Battle Stance."
+    local variableKey = "overpowerOnDodge" -- The key inside your SavedVariables table
+    local defaultValue = false
 
+    -- 3. Register the setting with Blizzard's Settings system
+    -- Note: Make sure dbTable (your SavedVariables) is initialized before calling this (e.g., on ADDON_LOADED)
+    local setting = Settings.RegisterAddOnSetting(
+        category,
+        variable,
+        variableKey,
+        dbTable,
+        type(defaultValue),
+        name,
+        defaultValue
+    )
+
+    -- Optional: React immediately when the checkbox value changes
+    -- setting:SetValueChangedCallback(function(setting, value)
+    --     print(name .. " is now:", value)
+    -- end)
+
+    -- 4. Create the checkbox control inside the category
+    Settings.CreateCheckbox(category, setting, tooltip)
+
+    -- 5. Register the category so it appears in the Escape -> Options -> AddOns list
+    Settings.RegisterAddOnCategory(category)
+
+    return category
+end
 
 
 

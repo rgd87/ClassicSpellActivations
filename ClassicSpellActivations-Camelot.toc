@@ -4,7 +4,7 @@
 ## Notes: Shows you the shiny
 ## Author: d87
 ## OptionalDeps: Bartender4, Dominos, Neuron
-
+## SavedVariables: ClassicSpellActivationsDB
 ## X-WoWI-ID: 25000
 ## X-Curse-Project-ID: 323802
 
